@@ -82,6 +82,7 @@ export function ProfileSetup() {
               </Label>
               <Input
                 id="concerns"
+                type="search"
                 placeholder="e.g., sea level rise, wildfires"
                 value={profile.climateConcerns}
                 onChange={(e) => updateProfile({ climateConcerns: e.target.value })}
