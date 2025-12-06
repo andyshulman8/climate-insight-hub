@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Send, User, MapPin, Layers, MessageCircle, Loader2, ArrowLeft, Lightbulb } from "lucide-react";
+import { Send, User, MapPin, Layers, MessageCircle, Loader2, ArrowLeft, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,6 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
 
-  // Convert stored string values to arrays for the select components
   const concernValues = stringToValues(profile.climateConcerns, climateConcernOptions);
   const geoValues = stringToValues(profile.geographicFocus, geographicFocusOptions);
   const categoryValues = stringToValues(profile.interestCategories, interestCategoryOptions);
@@ -75,41 +74,40 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur-sm">
-        <div className="container flex h-16 items-center gap-4">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="flex h-12 items-center gap-3 px-4">
           <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
-            <h1 className="font-heading text-xl font-semibold text-foreground">
-              Your Climate Profile
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Profile</span>
+            <span className="text-muted-foreground">/</span>
+            <h1 className="font-heading text-sm font-semibold text-foreground">
+              Preferences
             </h1>
-            <p className="text-xs text-muted-foreground">
-              Customize your news analysis preferences
-            </p>
           </div>
         </div>
       </header>
 
-      <main className="container py-8">
-        <div className="mx-auto max-w-2xl space-y-6 animate-fade-in">
+      <main className="container py-6">
+        <div className="mx-auto max-w-lg space-y-6 animate-fade-in">
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                Profile Settings
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <CardTitle>Analysis Preferences</CardTitle>
+              </div>
               <CardDescription>
-                Select your interests to get personalized climate news analysis
+                Configure your interests for personalized insights
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                <Label className="flex items-center gap-2 text-xs font-medium">
+                  <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
                   Climate Concerns
                 </Label>
                 <SearchableSelect
@@ -118,14 +116,14 @@ export default function Profile() {
                   onChange={(values) =>
                     updateProfile({ climateConcerns: valuesToString(values, climateConcernOptions) })
                   }
-                  placeholder="Select your climate concerns..."
-                  searchPlaceholder="Search concerns..."
+                  placeholder="Select concerns..."
+                  searchPlaceholder="Search..."
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                <Label className="flex items-center gap-2 text-xs font-medium">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                   Geographic Focus
                 </Label>
                 <SearchableSelect
@@ -134,14 +132,14 @@ export default function Profile() {
                   onChange={(values) =>
                     updateProfile({ geographicFocus: valuesToString(values, geographicFocusOptions) })
                   }
-                  placeholder="Select geographic areas..."
-                  searchPlaceholder="Search regions..."
+                  placeholder="Select regions..."
+                  searchPlaceholder="Search..."
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-muted-foreground" />
+                <Label className="flex items-center gap-2 text-xs font-medium">
+                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
                   Interest Categories
                 </Label>
                 <SearchableSelect
@@ -150,48 +148,47 @@ export default function Profile() {
                   onChange={(values) =>
                     updateProfile({ interestCategories: valuesToString(values, interestCategoryOptions) })
                   }
-                  placeholder="Select interest categories..."
-                  searchPlaceholder="Search categories..."
+                  placeholder="Select categories..."
+                  searchPlaceholder="Search..."
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card variant="highlight">
+          <Card variant="default">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-amber" />
-                Need Help Setting Up?
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                <CardTitle>Need Suggestions?</CardTitle>
+              </div>
               <CardDescription>
-                Ask the AI for suggestions on how to fill out your profile
+                Ask the AI for profile recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Textarea
-                    placeholder="e.g., 'What concerns should I track if I live near the coast?' or 'Help me discover relevant topics'"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    rows={2}
-                    className="resize-none"
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <Textarea
+                  placeholder="e.g., 'What should I track if I live near the coast?'"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  rows={2}
+                  className="resize-none text-sm"
+                />
                 <Button
                   type="submit"
                   variant="secondary"
+                  size="sm"
                   disabled={isLoading || !userInput.trim()}
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Thinking...
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Processing...
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4" />
-                      Ask for Suggestions
+                      <Send className="h-3.5 w-3.5" />
+                      Ask
                     </>
                   )}
                 </Button>
@@ -200,15 +197,12 @@ export default function Profile() {
           </Card>
 
           {response && (
-            <Card variant="glass" className="animate-slide-up">
-              <CardHeader>
-                <CardTitle className="text-lg">AI Suggestions</CardTitle>
-                <CardDescription>
-                  Here's how to fill out your profile based on your question
-                </CardDescription>
+            <Card variant="highlight" className="animate-slide-up">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">AI Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose-climate">
+                <div className="prose-swiss text-sm">
                   <ReactMarkdown>{response}</ReactMarkdown>
                 </div>
               </CardContent>

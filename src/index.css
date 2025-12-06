@@ -2,126 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "@fontsource/crimson-text/400.css";
-@import "@fontsource/crimson-text/600.css";
-@import "@fontsource/crimson-text/700.css";
-@import "@fontsource/source-sans-3/400.css";
-@import "@fontsource/source-sans-3/500.css";
-@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 
 @layer base {
   :root {
-    /* Nature-inspired palette */
-    --background: 145 20% 97%;
-    --foreground: 150 25% 12%;
+    /* Swiss-inspired minimal palette */
+    --background: 0 0% 98%;
+    --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 25% 12%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 25% 12%;
+    --popover-foreground: 240 10% 10%;
 
-    /* Deep forest green */
-    --primary: 152 45% 28%;
-    --primary-foreground: 145 20% 97%;
+    /* Research Blue */
+    --primary: 224 76% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Warm sand */
-    --secondary: 38 35% 92%;
-    --secondary-foreground: 150 25% 15%;
+    /* Light gray */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 4% 32%;
 
-    /* Soft sage */
-    --muted: 145 15% 90%;
-    --muted-foreground: 150 10% 40%;
+    /* Graphite muted */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    /* Ocean teal accent */
-    --accent: 185 55% 35%;
-    --accent-foreground: 0 0% 100%;
+    /* Highlight Yellow */
+    --accent: 50 98% 64%;
+    --accent-foreground: 240 10% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 145 15% 85%;
-    --input: 145 15% 85%;
-    --ring: 152 45% 28%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 224 76% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.25rem;
 
     /* Custom tokens */
-    --amber: 38 92% 50%;
-    --amber-foreground: 38 100% 15%;
-    --success: 152 60% 40%;
+    --highlight: 50 98% 64%;
+    --highlight-foreground: 240 10% 10%;
+    --success: 160 84% 26%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 100% 15%;
-    --info: 200 80% 45%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 240 10% 10%;
+    --info: 224 76% 40%;
     --info-foreground: 0 0% 100%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(152 45% 28%) 0%, hsl(185 55% 35%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(145 20% 98%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(145 20% 97%) 0%, hsl(145 15% 94%) 100%);
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(150 25% 12% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(150 25% 12% / 0.08), 0 2px 4px -2px hsl(150 25% 12% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(150 25% 12% / 0.1), 0 4px 6px -4px hsl(150 25% 12% / 0.05);
-    --shadow-glow: 0 0 20px hsl(152 45% 28% / 0.15);
+    /* Shadows - minimal */
+    --shadow-sm: 0 1px 2px 0 hsl(240 10% 10% / 0.03);
+    --shadow-md: 0 2px 4px -1px hsl(240 10% 10% / 0.04);
+    --shadow-lg: 0 4px 8px -2px hsl(240 10% 10% / 0.05);
 
     /* Typography */
-    --font-heading: "Crimson Text", Georgia, serif;
-    --font-body: "Source Sans 3", system-ui, sans-serif;
+    --font-heading: "Inter", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    --font-body: "Inter", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 10% 10%;
+    --sidebar-primary: 224 76% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 10% 10%;
+    --sidebar-border: 240 6% 92%;
+    --sidebar-ring: 224 76% 40%;
   }
 
   .dark {
-    --background: 150 20% 8%;
-    --foreground: 145 15% 95%;
+    --background: 240 10% 6%;
+    --foreground: 0 0% 95%;
 
-    --card: 150 18% 12%;
-    --card-foreground: 145 15% 95%;
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 150 18% 12%;
-    --popover-foreground: 145 15% 95%;
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 152 50% 45%;
-    --primary-foreground: 150 20% 8%;
+    --primary: 224 76% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 150 15% 18%;
-    --secondary-foreground: 145 15% 90%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 150 15% 18%;
-    --muted-foreground: 145 10% 60%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 185 55% 45%;
-    --accent-foreground: 150 20% 8%;
+    --accent: 50 98% 64%;
+    --accent-foreground: 240 10% 10%;
 
-    --destructive: 0 62.8% 45%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 20%;
-    --ring: 152 50% 45%;
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 224 76% 55%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(152 50% 35%) 0%, hsl(185 55% 40%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(150 18% 12%) 0%, hsl(150 18% 10%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(150 20% 8%) 0%, hsl(150 20% 6%) 100%);
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 240 10% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 224 76% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 5% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 5% 18%;
+    --sidebar-ring: 224 76% 55%;
   }
 }
 
@@ -130,75 +118,100 @@
     @apply border-border;
   }
 
+  html {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading font-semibold tracking-tight;
   }
 }
 
 @layer components {
-  .prose-climate {
-    @apply text-foreground/90 leading-relaxed;
+  /* Swiss typography system */
+  .prose-swiss {
+    @apply text-foreground leading-relaxed;
   }
 
-  .prose-climate h1,
-  .prose-climate h2,
-  .prose-climate h3 {
-    @apply font-heading text-foreground font-semibold mt-6 mb-3;
+  .prose-swiss h1,
+  .prose-swiss h2,
+  .prose-swiss h3 {
+    @apply font-heading text-foreground font-semibold tracking-tight mt-8 mb-4;
   }
 
-  .prose-climate h1 { @apply text-2xl; }
-  .prose-climate h2 { @apply text-xl; }
-  .prose-climate h3 { @apply text-lg; }
+  .prose-swiss h1 { @apply text-2xl; }
+  .prose-swiss h2 { @apply text-lg font-semibold; }
+  .prose-swiss h3 { @apply text-base font-semibold; }
 
-  .prose-climate p {
-    @apply mb-4 text-base;
+  .prose-swiss p {
+    @apply mb-4 text-sm leading-relaxed;
   }
 
-  .prose-climate ul,
-  .prose-climate ol {
-    @apply mb-4 pl-6;
+  .prose-swiss ul,
+  .prose-swiss ol {
+    @apply mb-4 pl-5 text-sm;
   }
 
-  .prose-climate li {
-    @apply mb-2;
+  .prose-swiss li {
+    @apply mb-1.5;
   }
 
-  .prose-climate ul li {
+  .prose-swiss ul li {
     @apply list-disc;
   }
 
-  .prose-climate ol li {
+  .prose-swiss ol li {
     @apply list-decimal;
   }
 
-  .prose-climate strong {
+  .prose-swiss strong {
     @apply font-semibold text-foreground;
   }
 
-  .prose-climate code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  .prose-swiss code {
+    @apply bg-muted px-1 py-0.5 rounded-sm text-xs font-mono;
   }
 
-  .prose-climate blockquote {
-    @apply border-l-4 border-primary/30 pl-4 italic text-muted-foreground my-4;
+  .prose-swiss blockquote {
+    @apply border-l-2 border-primary pl-4 text-muted-foreground my-4 text-sm;
+  }
+
+  /* Data/mono styling */
+  .data-text {
+    @apply font-mono text-sm tabular-nums;
+  }
+
+  /* Divider line */
+  .divider {
+    @apply border-t border-border;
+  }
+
+  /* Citation badge */
+  .citation-badge {
+    @apply inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-mono bg-muted text-muted-foreground rounded-sm;
+  }
+
+  /* Highlight marker */
+  .highlight-marker {
+    @apply bg-accent/40 px-0.5 -mx-0.5;
   }
 }
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeIn 0.3s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.5s ease-out forwards;
-  }
-
-  .animate-pulse-soft {
-    animation: pulseSoft 2s ease-in-out infinite;
+    animation: slideUp 0.3s ease-out forwards;
   }
 
   @keyframes fadeIn {
@@ -209,7 +222,7 @@
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(8px);
     }
     to { 
       opacity: 1;
@@ -217,14 +230,9 @@
     }
   }
 
-  @keyframes pulseSoft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
-
+  .delay-50 { animation-delay: 50ms; }
   .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
   .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
+  .delay-250 { animation-delay: 250ms; }
 }

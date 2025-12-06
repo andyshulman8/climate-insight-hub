@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Leaf, User, FileText, Loader2, Target, AlertTriangle } from "lucide-react";
+import { User, FileText, Loader2, AlertTriangle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +18,7 @@ import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { profile, isProfileComplete } = useUserProfile();
-  const { history, addArticle, removeArticle, getArticle } = useArticleHistory();
+  const { history, addArticle, removeArticle } = useArticleHistory();
   
   const [articleContent, setArticleContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -94,9 +94,9 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-subtle">
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0">
+      <aside className="hidden md:flex w-56 shrink-0">
         <ArticleHistorySidebar
           history={history}
           selectedId={selectedHistoryId}
@@ -107,26 +107,22 @@ const Index = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 border-l border-border">
         {/* Header */}
-        <header className="shrink-0 border-b border-border/50 bg-card/95 backdrop-blur-sm">
-          <div className="flex h-16 items-center justify-between px-6">
+        <header className="shrink-0 border-b border-border bg-background">
+          <div className="flex h-12 items-center justify-between px-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-hero shadow-md">
-                <Leaf className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="font-heading text-xl font-semibold text-foreground">
-                  Climate News Translator
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  Powered by Kith AI
-                </p>
-              </div>
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
+              <span className="text-muted-foreground">/</span>
+              <h1 className="font-heading text-sm font-semibold text-foreground">
+                Translator
+              </h1>
             </div>
             <Link to="/profile">
-              <Button variant="ghost" size="icon" aria-label="Edit profile">
-                <User className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <User className="h-3.5 w-3.5" />
+                <span className="text-xs">Profile</span>
+                <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
           </div>
@@ -134,59 +130,53 @@ const Index = () => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+          <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
             {/* Profile Warning */}
             {!isProfileComplete && (
-              <Card variant="outline" className="border-amber/50 bg-amber/5 animate-fade-in">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <AlertTriangle className="h-5 w-5 text-amber shrink-0" />
-                  <p className="text-sm text-foreground flex-1">
-                    Set up your profile for personalized analysis
-                  </p>
-                  <Link to="/profile">
-                    <Button variant="outline" size="sm">
-                      Set Up Profile
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <div className="flex items-center gap-3 p-3 border border-warning/30 bg-warning/5 text-sm animate-fade-in">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+                <p className="text-foreground flex-1 text-xs">
+                  Configure your profile for personalized analysis
+                </p>
+                <Link to="/profile">
+                  <Button variant="outline" size="sm" className="text-xs h-6 px-2">
+                    Configure
+                  </Button>
+                </Link>
+              </div>
             )}
 
-            {/* Compact Article Input */}
+            {/* Article Input */}
             <Card variant="elevated" className="animate-fade-in">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Analyze Climate Article
-                </CardTitle>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <CardTitle>Article Analysis</CardTitle>
+                </div>
                 <CardDescription>
-                  Paste a climate news article to get personalized analysis
+                  Paste climate news content for evidence-based analysis
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Textarea
-                  placeholder="Paste the full text of a climate news article here..."
+                  placeholder="Paste article text here..."
                   value={articleContent}
                   onChange={(e) => setArticleContent(e.target.value)}
-                  rows={4}
-                  className="resize-none"
+                  rows={3}
+                  className="resize-none text-sm font-body"
                 />
                 <Button
-                  variant="hero"
                   onClick={handleAnalyze}
                   disabled={isLoading || !articleContent.trim()}
                   className="w-full sm:w-auto"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       Analyzing...
                     </>
                   ) : (
-                    <>
-                      <Target className="h-4 w-4" />
-                      Analyze Article
-                    </>
+                    "Analyze"
                   )}
                 </Button>
               </CardContent>
@@ -196,6 +186,13 @@ const Index = () => {
             {analysis && <AnalysisResults analysis={analysis} />}
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className="shrink-0 border-t border-border bg-background px-4 py-2">
+          <p className="text-2xs text-muted-foreground font-mono text-center">
+            Powered by Kith AI • Evidence-based climate intelligence
+          </p>
+        </footer>
       </div>
     </div>
   );

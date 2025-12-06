@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,9 +31,9 @@ export function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = "Select options...",
+  placeholder = "Select...",
   searchPlaceholder = "Search...",
-  emptyMessage = "No options found.",
+  emptyMessage = "No results.",
   className,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
@@ -58,11 +58,11 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full justify-between h-auto min-h-10", className)}
+          className={cn("w-full justify-between h-auto min-h-8 text-left font-normal", className)}
         >
-          <div className="flex flex-wrap gap-1 flex-1 text-left">
+          <div className="flex flex-wrap gap-1 flex-1">
             {value.length === 0 ? (
-              <span className="text-muted-foreground">{placeholder}</span>
+              <span className="text-muted-foreground text-sm">{placeholder}</span>
             ) : (
               value.map((v) => {
                 const option = options.find((o) => o.value === v);
@@ -70,38 +70,39 @@ export function SearchableSelect({
                   <Badge
                     key={v}
                     variant="secondary"
-                    className="mr-1 mb-1"
+                    className="text-2xs h-5 px-1.5 font-normal"
                   >
                     {option?.label || v}
                     <button
-                      className="ml-1 rounded-full outline-none hover:bg-muted"
+                      className="ml-1 hover:text-destructive"
                       onClick={(e) => handleRemove(v, e)}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-2.5 w-2.5" />
                     </button>
                   </Badge>
                 );
               })
             )}
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 z-50" align="start">
+      <PopoverContent className="w-full p-0 z-50 bg-popover" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={searchPlaceholder} className="text-sm h-8" />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup className="max-h-64 overflow-auto">
+            <CommandEmpty className="text-xs py-4 text-center">{emptyMessage}</CommandEmpty>
+            <CommandGroup className="max-h-48 overflow-auto">
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
                   onSelect={() => handleSelect(option.value)}
+                  className="text-sm py-1.5"
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-3.5 w-3.5",
                       value.includes(option.value) ? "opacity-100" : "opacity-0"
                     )}
                   />
