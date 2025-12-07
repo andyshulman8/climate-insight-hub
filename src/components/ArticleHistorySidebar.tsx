@@ -31,12 +31,6 @@ export function ArticleHistorySidebar({
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="h-12 flex items-center px-3 border-b border-border">
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
-        <span className="text-muted-foreground mx-2">/</span>
-        <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
-      </div>
-
       <div className="px-3 py-2 border-b border-border">
         <span className="font-mono text-2xs text-muted-foreground uppercase tracking-wider">History</span>
       </div>
