@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { User, FileText, Loader2, AlertTriangle, ChevronRight } from "lucide-react";
+import { User, FileText, Loader2, AlertTriangle, ChevronRight, ChevronLeft, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ import {
   ApiError,
 } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const { profile, isProfileComplete } = useUserProfile();
@@ -25,6 +26,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleAnalyze = async () => {
     if (!articleContent.trim()) {
@@ -101,22 +103,57 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="hidden md:flex w-56 shrink-0">
-        <ArticleHistorySidebar
-          history={history}
-          selectedId={selectedHistoryId}
-          onSelect={handleSelectHistory}
-          onDelete={handleDeleteHistory}
-        />
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar - collapsible */}
+      <aside
+        className={cn(
+          "hidden md:flex shrink-0 transition-all duration-200 ease-in-out relative",
+          sidebarOpen ? "w-56" : "w-0"
+        )}
+      >
+        <div className={cn(
+          "w-56 h-full transition-transform duration-200 ease-in-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <ArticleHistorySidebar
+            history={history}
+            selectedId={selectedHistoryId}
+            onSelect={handleSelectHistory}
+            onDelete={handleDeleteHistory}
+          />
+        </div>
+        {/* Close button inside sidebar */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSidebarOpen(false)}
+          className={cn(
+            "absolute top-2 right-1 h-6 w-6 z-10 transition-opacity",
+            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 border-l border-border">
         {/* Header */}
         <header className="shrink-0 border-b border-border bg-background">
-          <div className="flex h-12 items-center justify-end px-4">
+          <div className="flex h-12 items-center justify-between px-4">
+            {/* Sidebar toggle button */}
+            <div className="flex items-center gap-2">
+              {!sidebarOpen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(true)}
+                  className="h-8 w-8 hidden md:flex"
+                >
+                  <PanelLeftOpen className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="gap-1.5">
                 <User className="h-3.5 w-3.5" />
