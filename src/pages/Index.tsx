@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { ArticleHistorySidebar } from "@/components/ArticleHistorySidebar";
 import { AnalysisResults } from "@/components/AnalysisResults";
+import { NewsFeed } from "@/components/NewsFeed";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useArticleHistory, ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import {
@@ -93,6 +94,12 @@ const Index = () => {
     }
   };
 
+  const handlePasteFromNews = (text: string) => {
+    setArticleContent(text);
+    setAnalysis(null);
+    setSelectedHistoryId(null);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -102,7 +109,6 @@ const Index = () => {
           selectedId={selectedHistoryId}
           onSelect={handleSelectHistory}
           onDelete={handleDeleteHistory}
-          onNewAnalysis={handleNewAnalysis}
         />
       </aside>
 
@@ -110,14 +116,7 @@ const Index = () => {
       <div className="flex-1 flex flex-col min-w-0 border-l border-border">
         {/* Header */}
         <header className="shrink-0 border-b border-border bg-background">
-          <div className="flex h-12 items-center justify-between px-4">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
-              <span className="text-muted-foreground">/</span>
-              <h1 className="font-heading text-sm font-semibold text-foreground">
-                Translator
-              </h1>
-            </div>
+          <div className="flex h-12 items-center justify-end px-4">
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="gap-1.5">
                 <User className="h-3.5 w-3.5" />
@@ -182,8 +181,12 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            {/* Analysis Results */}
-            {analysis && <AnalysisResults analysis={analysis} />}
+            {/* Analysis Results or News Feed */}
+            {analysis ? (
+              <AnalysisResults analysis={analysis} />
+            ) : (
+              <NewsFeed onPasteArticle={handlePasteFromNews} />
+            )}
           </div>
         </main>
 

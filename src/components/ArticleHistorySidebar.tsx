@@ -1,4 +1,4 @@
-import { FileText, Trash2, Clock, Plus } from "lucide-react";
+import { FileText, Trash2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArticleHistoryItem } from "@/hooks/useArticleHistory";
@@ -9,7 +9,6 @@ interface ArticleHistorySidebarProps {
   selectedId: string | null;
   onSelect: (item: ArticleHistoryItem) => void;
   onDelete: (id: string) => void;
-  onNewAnalysis: () => void;
 }
 
 export function ArticleHistorySidebar({
@@ -17,7 +16,6 @@ export function ArticleHistorySidebar({
   selectedId,
   onSelect,
   onDelete,
-  onNewAnalysis,
 }: ArticleHistorySidebarProps) {
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -33,11 +31,10 @@ export function ArticleHistorySidebar({
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="p-3 border-b border-border">
-        <Button onClick={onNewAnalysis} className="w-full justify-start gap-2" variant="outline" size="sm">
-          <Plus className="h-3.5 w-3.5" />
-          <span className="text-xs">New Analysis</span>
-        </Button>
+      <div className="h-12 flex items-center px-3 border-b border-border">
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
+        <span className="text-muted-foreground mx-2">/</span>
+        <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
       </div>
 
       <div className="px-3 py-2 border-b border-border">
