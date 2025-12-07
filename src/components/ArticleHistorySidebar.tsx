@@ -53,7 +53,7 @@ export function ArticleHistorySidebar({
               <div
                 key={item.id}
                 className={cn(
-                  "group flex items-start gap-2 p-2 cursor-pointer transition-colors border-l-2",
+                  "group flex items-start gap-2 p-2 cursor-pointer transition-colors border-l-2 overflow-hidden",
                   selectedId === item.id
                     ? "bg-primary/5 border-l-primary text-foreground"
                     : "hover:bg-muted/50 border-l-transparent text-muted-foreground hover:text-foreground"
@@ -61,8 +61,8 @@ export function ArticleHistorySidebar({
                 onClick={() => onSelect(item)}
               >
                 <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate leading-tight">{item.title}</p>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <p className="text-xs font-medium truncate leading-tight max-w-full">{item.title}</p>
                   <p className="text-2xs text-muted-foreground font-mono mt-0.5">{formatDate(item.timestamp)}</p>
                 </div>
                 <Button
