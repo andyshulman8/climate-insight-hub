@@ -104,37 +104,51 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar - collapsible */}
-      <aside
-        className={cn(
-          "hidden md:flex shrink-0 transition-all duration-200 ease-in-out relative",
-          sidebarOpen ? "w-56" : "w-0"
-        )}
-      >
-        <div className={cn(
-          "w-56 h-full transition-transform duration-200 ease-in-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
-          <ArticleHistorySidebar
-            history={history}
-            selectedId={selectedHistoryId}
-            onSelect={handleSelectHistory}
-            onDelete={handleDeleteHistory}
-          />
+      {/* Left Column: Header + Collapsible Sidebar */}
+      <div className="hidden md:flex flex-col shrink-0">
+        {/* Fixed Header - always visible */}
+        <div
+          className="h-12 flex items-center px-3 border-b border-r border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors w-56"
+          onClick={handleNewAnalysis}
+          title="New Analysis"
+        >
+          <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
+          <span className="text-muted-foreground mx-2">/</span>
+          <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
         </div>
-        {/* Close button inside sidebar */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSidebarOpen(false)}
+
+        {/* Sidebar - collapsible */}
+        <aside
           className={cn(
-            "absolute top-2 right-1 h-6 w-6 z-10 transition-opacity",
-            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            "flex-1 shrink-0 transition-all duration-200 ease-in-out relative overflow-hidden border-r border-border",
+            sidebarOpen ? "w-56" : "w-0"
           )}
         >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-      </aside>
+          <div className={cn(
+            "w-56 h-full transition-transform duration-200 ease-in-out",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}>
+            <ArticleHistorySidebar
+              history={history}
+              selectedId={selectedHistoryId}
+              onSelect={handleSelectHistory}
+              onDelete={handleDeleteHistory}
+            />
+          </div>
+          {/* Close button inside sidebar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+            className={cn(
+              "absolute top-1 right-1 h-6 w-6 z-10 transition-opacity",
+              sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        </aside>
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 border-l border-border">
