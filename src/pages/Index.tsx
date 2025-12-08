@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { User, FileText, Loader2, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
+import { User, FileText, Loader2, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 const Index = () => {
   const { profile, updateProfile, isProfileComplete } = useUserProfile();
@@ -141,91 +142,172 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Left Column: Header + Toggle + Collapsible Sidebar */}
-      <div className="hidden md:flex flex-col shrink-0 border-r border-border">
-        {/* Fixed Header - always visible */}
-        <div
-          className="h-12 flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors w-56"
-          onClick={handleNewAnalysis}
-          title="New Analysis"
-        >
-          <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
-          <span className="text-muted-foreground mx-2">/</span>
-          <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
-        </div>
-
-        {/* Toggle button - always visible, outside sidebar */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="h-8 mx-2 mt-2 justify-start gap-2 text-muted-foreground hover:text-foreground"
-        >
-          {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          <span className="font-mono text-2xs uppercase tracking-wider">History</span>
-        </Button>
-
-        {/* Sidebar - collapsible content */}
-        <aside
+      {/* Desktop: Resizable sidebar */}
+      <ResizablePanelGroup direction="horizontal" className="hidden md:flex">
+        {/* Left Panel: Header + Toggle + Collapsible Sidebar */}
+        <ResizablePanel
+          defaultSize={20}
+          minSize={15}
+          maxSize={35}
+          collapsible
+          collapsedSize={0}
+          onCollapse={() => setSidebarOpen(false)}
+          onExpand={() => setSidebarOpen(true)}
           className={cn(
-            "flex-1 shrink-0 transition-all duration-200 ease-in-out overflow-hidden",
-            sidebarOpen ? "opacity-100" : "opacity-0 h-0"
+            "flex flex-col shrink-0 border-r border-border transition-all",
+            !sidebarOpen && "hidden"
           )}
         >
-          <ArticleHistorySidebar
-            history={history}
-            selectedId={selectedHistoryId}
-            onSelect={handleSelectHistory}
-            onDelete={handleDeleteHistory}
-            onClear={handleClearHistory}
-            onAddTagToProfile={handleAddTagToProfile}
-          />
-        </aside>
-      </div>
+          {/* Fixed Header - always visible */}
+          <div
+            className="h-12 flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors"
+            onClick={handleNewAnalysis}
+            title="New Analysis"
+          >
+            <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
+            <span className="text-muted-foreground mx-2">/</span>
+            <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
+          </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
+          {/* Toggle button - always visible, outside sidebar */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="h-8 mx-2 mt-2 justify-start gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="font-mono text-2xs uppercase tracking-wider">History</span>
+          </Button>
+
+          {/* Sidebar content */}
+          <aside className="flex-1 overflow-hidden">
+            <ArticleHistorySidebar
+              history={history}
+              selectedId={selectedHistoryId}
+              onSelect={handleSelectHistory}
+              onDelete={handleDeleteHistory}
+              onClear={handleClearHistory}
+              onAddTagToProfile={handleAddTagToProfile}
+            />
+          </aside>
+        </ResizablePanel>
+
+        {/* Resize Handle */}
+        {sidebarOpen && (
+          <ResizableHandle withHandle className="bg-border hover:bg-primary/20 transition-colors">
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </ResizableHandle>
+        )}
+
+        {/* Main Content Panel */}
+        <ResizablePanel defaultSize={80} minSize={50}>
+          <div className="flex-1 flex flex-col min-w-0 h-full">
+            {/* Header */}
+            <header className="shrink-0 border-b border-border bg-background">
+              <div className="flex h-12 items-center justify-between px-4">
+                {/* Show expand button when sidebar is closed */}
+                {!sidebarOpen && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarOpen(true)}
+                    className="gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="font-mono text-2xs uppercase tracking-wider">History</span>
+                  </Button>
+                )}
+                {sidebarOpen && <div />}
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="gap-1.5">
+                    <User className="h-3.5 w-3.5" />
+                    <span className="text-xs">Profile</span>
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </Link>
+              </div>
+            </header>
+
+            {/* Content Area */}
+            <main className="flex-1 overflow-y-auto">
+              <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                {/* Article Input */}
+                <Card variant="elevated" className="animate-fade-in">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <CardTitle>Article Analysis</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Paste climate news content for evidence-based analysis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Textarea
+                      placeholder="Paste article text here..."
+                      value={articleContent}
+                      onChange={(e) => setArticleContent(e.target.value)}
+                      rows={3}
+                      className="resize-y min-h-[80px] text-sm font-body"
+                    />
+                    <Button
+                      onClick={handleAnalyze}
+                      disabled={isLoading || !articleContent.trim()}
+                      className="w-full sm:w-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        "Analyze"
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Analysis Results or News Feed */}
+                {analysis ? (
+                  <AnalysisResults analysis={analysis} articleContent={articleContent} />
+                ) : (
+                  <NewsFeed onPasteArticle={handlePasteFromNews} />
+                )}
+              </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="shrink-0 border-t border-border bg-background px-4 py-2">
+              <p className="text-2xs text-muted-foreground font-mono text-center">
+                Powered by Kith AI • Evidence-based climate intelligence
+              </p>
+            </footer>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      {/* Mobile: Simple layout without sidebar */}
+      <div className="flex flex-col w-full md:hidden">
         <header className="shrink-0 border-b border-border bg-background">
-          <div className="flex h-12 items-center justify-end px-4">
+          <div className="flex h-12 items-center justify-between px-4">
+            <span className="font-heading text-sm font-semibold text-foreground">Climate News Translator</span>
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="gap-1.5">
                 <User className="h-3.5 w-3.5" />
                 <span className="text-xs">Profile</span>
-                <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
           </div>
         </header>
-
-        {/* Content Area */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-            {/* Profile Warning */}
-            {!isProfileComplete && (
-              <div className="flex items-center gap-3 p-3 border border-warning/30 bg-warning/5 text-sm animate-fade-in">
-                <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
-                <p className="text-foreground flex-1 text-xs">
-                  Configure your profile for personalized analysis
-                </p>
-                <Link to="/profile">
-                  <Button variant="outline" size="sm" className="text-xs h-6 px-2">
-                    Configure
-                  </Button>
-                </Link>
-              </div>
-            )}
-
-            {/* Article Input */}
             <Card variant="elevated" className="animate-fade-in">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
                   <CardTitle>Article Analysis</CardTitle>
                 </div>
-                <CardDescription>
-                  Paste climate news content for evidence-based analysis
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Textarea
@@ -238,7 +320,7 @@ const Index = () => {
                 <Button
                   onClick={handleAnalyze}
                   disabled={isLoading || !articleContent.trim()}
-                  className="w-full sm:w-auto"
+                  className="w-full"
                 >
                   {isLoading ? (
                     <>
@@ -251,22 +333,13 @@ const Index = () => {
                 </Button>
               </CardContent>
             </Card>
-
-            {/* Analysis Results or News Feed */}
             {analysis ? (
-              <AnalysisResults analysis={analysis} />
+              <AnalysisResults analysis={analysis} articleContent={articleContent} />
             ) : (
               <NewsFeed onPasteArticle={handlePasteFromNews} />
             )}
           </div>
         </main>
-
-        {/* Footer */}
-        <footer className="shrink-0 border-t border-border bg-background px-4 py-2">
-          <p className="text-2xs text-muted-foreground font-mono text-center">
-            Powered by Kith AI • Evidence-based climate intelligence
-          </p>
-        </footer>
       </div>
     </div>
   );

@@ -5,9 +5,12 @@ import {
   BookOpen,
   ArrowRight,
   FileCheck,
+  ExternalLink,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { AnalysisResponse } from "@/lib/api";
 import {
   Accordion,
@@ -18,9 +21,52 @@ import {
 
 interface AnalysisResultsProps {
   analysis: AnalysisResponse;
+  articleContent?: string;
 }
 
-export function AnalysisResults({ analysis }: AnalysisResultsProps) {
+// Extract potential source URLs from article content
+const extractSourceLinks = (content: string): { url: string; title: string }[] => {
+  const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;
+  const matches = content.match(urlRegex) || [];
+  
+  return matches.slice(0, 3).map(url => {
+    // Try to extract domain as title
+    try {
+      const domain = new URL(url).hostname.replace('www.', '');
+      return { url, title: domain };
+    } catch {
+      return { url, title: url.slice(0, 30) + '...' };
+    }
+  });
+};
+
+// Generate search links based on key terms
+const generateSearchLinks = (analysis: AnalysisResponse): { url: string; title: string }[] => {
+  const links: { url: string; title: string }[] = [];
+  
+  // Add search based on key terms
+  if (analysis.key_terms_explained) {
+    const terms = Object.keys(analysis.key_terms_explained).slice(0, 2);
+    terms.forEach(term => {
+      links.push({
+        url: `https://www.google.com/search?q=${encodeURIComponent(term + ' climate news')}`,
+        title: `Search: ${term}`,
+      });
+    });
+  }
+  
+  // Add a general climate search
+  if (analysis.risk_assessment?.risk_level) {
+    links.push({
+      url: `https://news.google.com/search?q=${encodeURIComponent('climate ' + analysis.risk_assessment.risk_level + ' risk')}`,
+      title: 'Related Climate News',
+    });
+  }
+  
+  return links.slice(0, 3);
+};
+
+export function AnalysisResults({ analysis, articleContent = "" }: AnalysisResultsProps) {
   const getRiskStyles = (level: string) => {
     switch (level.toLowerCase()) {
       case "high":
@@ -34,8 +80,32 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
     }
   };
 
+  const sourceLinks = extractSourceLinks(articleContent);
+  const searchLinks = generateSearchLinks(analysis);
+  const allLinks = [...sourceLinks, ...searchLinks].slice(0, 4);
+
   return (
     <div className="space-y-4 animate-fade-in">
+      {/* Source Links */}
+      {allLinks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 border border-border rounded-sm">
+          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground font-mono">Sources:</span>
+          {allLinks.map((link, idx) => (
+            <Button
+              key={idx}
+              variant="outline"
+              size="sm"
+              className="h-6 text-2xs gap-1 px-2"
+              onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
+            >
+              {link.title}
+              <ExternalLink className="h-2.5 w-2.5" />
+            </Button>
+          ))}
+        </div>
+      )}
+
       {/* Summary Section */}
       <Card variant="highlight">
         <CardHeader className="pb-2">
