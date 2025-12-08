@@ -61,5 +61,5 @@ export function useArticleHistory() {
     removeArticle,
     clearHistory,
     getArticle,
-  };
+  } as const;
 }
