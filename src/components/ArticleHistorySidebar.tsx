@@ -1,6 +1,8 @@
-import { FileText, Trash2, Clock, Plus, Search } from "lucide-react";
+import { useState } from "react";
+import { FileText, Trash2, Clock, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -46,6 +48,18 @@ export function ArticleHistorySidebar({
   onClear,
   onAddTagToProfile,
 }: ArticleHistorySidebarProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredHistory = history.filter(item => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const matchesTitle = item.title.toLowerCase().includes(query);
+    const matchesContent = item.content.toLowerCase().includes(query);
+    const tags = extractTags(item.analysis);
+    const matchesTags = tags.some(tag => tag.label.toLowerCase().includes(query));
+    return matchesTitle || matchesContent || matchesTags;
+  });
+
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -60,6 +74,29 @@ export function ArticleHistorySidebar({
 
   return (
     <div className="flex h-full flex-col bg-background">
+      {/* Search */}
+      <div className="px-2 py-2 border-b border-border">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+          <Input
+            placeholder="Search history..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-7 pl-7 pr-7 text-xs"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-7 w-7"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Clear All button */}
       {history.length > 0 && (
         <div className="px-2 py-1 border-b border-border">
@@ -77,13 +114,15 @@ export function ArticleHistorySidebar({
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
-          {history.length === 0 ? (
+          {filteredHistory.length === 0 ? (
             <div className="p-4 text-center">
               <Clock className="h-5 w-5 mx-auto mb-2 text-muted-foreground/50" />
-              <p className="text-xs text-muted-foreground">No analyses yet</p>
+              <p className="text-xs text-muted-foreground">
+                {searchQuery ? "No matching articles" : "No analyses yet"}
+              </p>
             </div>
           ) : (
-            history.map((item) => {
+            filteredHistory.map((item) => {
               const tags = extractTags(item.analysis);
               
               return (
