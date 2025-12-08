@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { User, FileText, Loader2, AlertTriangle, ChevronRight, ChevronLeft, PanelLeftOpen } from "lucide-react";
+import { User, FileText, Loader2, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,8 +19,8 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
-  const { profile, isProfileComplete } = useUserProfile();
-  const { history, addArticle, removeArticle } = useArticleHistory();
+  const { profile, updateProfile, isProfileComplete } = useUserProfile();
+  const { history, addArticle, removeArticle, clearHistory } = useArticleHistory();
   
   const [articleContent, setArticleContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -102,13 +102,50 @@ const Index = () => {
     setSelectedHistoryId(null);
   };
 
+  const handleClearHistory = () => {
+    clearHistory();
+    handleNewAnalysis();
+  };
+
+  const handleAddTagToProfile = (tag: string, type: 'concern' | 'category' | 'geographic') => {
+    const currentValue = type === 'concern' 
+      ? profile.climateConcerns 
+      : type === 'category' 
+        ? profile.interestCategories 
+        : profile.geographicFocus;
+    
+    const values = currentValue ? currentValue.split(', ').filter(Boolean) : [];
+    if (!values.includes(tag)) {
+      values.push(tag);
+      const newValue = values.join(', ');
+      
+      if (type === 'concern') {
+        updateProfile({ climateConcerns: newValue });
+      } else if (type === 'category') {
+        updateProfile({ interestCategories: newValue });
+      } else {
+        updateProfile({ geographicFocus: newValue });
+      }
+      
+      toast({
+        title: "Added to Profile",
+        description: `"${tag}" has been added to your profile preferences.`,
+      });
+    } else {
+      toast({
+        title: "Already in Profile",
+        description: `"${tag}" is already in your profile preferences.`,
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Left Column: Header + Collapsible Sidebar */}
-      <div className="hidden md:flex flex-col shrink-0">
+      {/* Left Column: Header + Toggle + Collapsible Sidebar */}
+      <div className="hidden md:flex flex-col shrink-0 border-r border-border">
         {/* Fixed Header - always visible */}
         <div
-          className="h-12 flex items-center px-3 border-b border-r border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors w-56"
+          className="h-12 flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors w-56"
           onClick={handleNewAnalysis}
           title="New Analysis"
         >
@@ -117,57 +154,40 @@ const Index = () => {
           <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
         </div>
 
-        {/* Sidebar - collapsible */}
+        {/* Toggle button - always visible, outside sidebar */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="h-8 mx-2 mt-2 justify-start gap-2 text-muted-foreground hover:text-foreground"
+        >
+          {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <span className="font-mono text-2xs uppercase tracking-wider">History</span>
+        </Button>
+
+        {/* Sidebar - collapsible content */}
         <aside
           className={cn(
-            "flex-1 shrink-0 transition-all duration-200 ease-in-out relative overflow-hidden border-r border-border",
-            sidebarOpen ? "w-56" : "w-0"
+            "flex-1 shrink-0 transition-all duration-200 ease-in-out overflow-hidden",
+            sidebarOpen ? "opacity-100" : "opacity-0 h-0"
           )}
         >
-          <div className={cn(
-            "w-56 h-full transition-transform duration-200 ease-in-out",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}>
-            <ArticleHistorySidebar
-              history={history}
-              selectedId={selectedHistoryId}
-              onSelect={handleSelectHistory}
-              onDelete={handleDeleteHistory}
-            />
-          </div>
-          {/* Close button inside sidebar */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(false)}
-            className={cn(
-              "absolute top-1 right-1 h-6 w-6 z-10 transition-opacity",
-              sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            )}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+          <ArticleHistorySidebar
+            history={history}
+            selectedId={selectedHistoryId}
+            onSelect={handleSelectHistory}
+            onDelete={handleDeleteHistory}
+            onClear={handleClearHistory}
+            onAddTagToProfile={handleAddTagToProfile}
+          />
         </aside>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 border-l border-border">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="shrink-0 border-b border-border bg-background">
-          <div className="flex h-12 items-center justify-between px-4">
-            {/* Sidebar toggle button */}
-            <div className="flex items-center gap-2">
-              {!sidebarOpen && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(true)}
-                  className="h-8 w-8 hidden md:flex"
-                >
-                  <PanelLeftOpen className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+          <div className="flex h-12 items-center justify-end px-4">
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="gap-1.5">
                 <User className="h-3.5 w-3.5" />
@@ -213,7 +233,7 @@ const Index = () => {
                   value={articleContent}
                   onChange={(e) => setArticleContent(e.target.value)}
                   rows={3}
-                  className="resize-none text-sm font-body"
+                  className="resize-y min-h-[80px] text-sm font-body"
                 />
                 <Button
                   onClick={handleAnalyze}
