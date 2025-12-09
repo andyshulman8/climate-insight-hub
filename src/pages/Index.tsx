@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { User, FileText, Loader2, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
+import { User, FileText, Loader2, ChevronRight, ChevronLeft, GripVertical, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { AnalysisResults } from "@/components/AnalysisResults";
 import { NewsFeed } from "@/components/NewsFeed";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useArticleHistory, ArticleHistoryItem } from "@/hooks/useArticleHistory";
+import { useFavorites } from "@/hooks/useFavorites";
 import {
   articleAnalysis,
   normalizeResponseField,
@@ -22,6 +23,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 const Index = () => {
   const { profile, updateProfile, isProfileComplete } = useUserProfile();
   const { history, addArticle, removeArticle, clearHistory } = useArticleHistory();
+  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
   
   const [articleContent, setArticleContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -219,13 +221,36 @@ const Index = () => {
                   </Button>
                 )}
                 {sidebarOpen && <div />}
-                <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="gap-1.5">
-                    <User className="h-3.5 w-3.5" />
-                    <span className="text-xs">Profile</span>
-                    <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  {selectedHistoryId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => {
+                        const item = history.find(h => h.id === selectedHistoryId);
+                        if (item) {
+                          if (isFavorite(item.id)) {
+                            removeFavorite(item.id);
+                            toast({ title: "Removed from favorites" });
+                          } else {
+                            addFavorite(item);
+                            toast({ title: "Added to favorites" });
+                          }
+                        }
+                      }}
+                    >
+                      <Star className={cn("h-3.5 w-3.5", selectedHistoryId && isFavorite(selectedHistoryId) && "fill-primary text-primary")} />
+                      <span className="text-xs">{selectedHistoryId && isFavorite(selectedHistoryId) ? "Unfavorite" : "Favorite"}</span>
+                    </Button>
+                  )}
+                  <Link to="/profile">
+                    <Button variant="ghost" size="sm" className="gap-1.5">
+                      <User className="h-3.5 w-3.5" />
+                      <span className="text-xs">Profile</span>
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </header>
 
