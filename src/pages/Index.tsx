@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { User, FileText, Loader2, ChevronRight, ChevronLeft, GripVertical, Star } from "lucide-react";
+import { User, FileText, Loader2, ChevronRight, ChevronLeft, GripVertical, Star, History, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArticleHistorySidebar } from "@/components/ArticleHistorySidebar";
+import { FavoritesSidebar } from "@/components/FavoritesSidebar";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { NewsFeed } from "@/components/NewsFeed";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useArticleHistory, ArticleHistoryItem } from "@/hooks/useArticleHistory";
-import { useFavorites } from "@/hooks/useFavorites";
+import { useFavorites, FavoriteTag } from "@/hooks/useFavorites";
 import {
   articleAnalysis,
   normalizeResponseField,
@@ -23,13 +26,14 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 const Index = () => {
   const { profile, updateProfile, isProfileComplete } = useUserProfile();
   const { history, addArticle, removeArticle, clearHistory } = useArticleHistory();
-  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { favorites, addFavorite, removeFavorite, isFavorite, favoriteTags, addFavoriteTag, removeFavoriteTag, isTagFavorite } = useFavorites();
   
   const [articleContent, setArticleContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const handleAnalyze = async () => {
     if (!articleContent.trim()) {
@@ -84,6 +88,7 @@ const Index = () => {
     setSelectedHistoryId(item.id);
     setArticleContent(item.content);
     setAnalysis(item.analysis);
+    setMobileSheetOpen(false);
   };
 
   const handleNewAnalysis = () => {
@@ -141,6 +146,64 @@ const Index = () => {
       });
     }
   };
+
+  const handleAddTagToFavorites = (tag: FavoriteTag) => {
+    if (isTagFavorite(tag.label, tag.type)) {
+      toast({ title: "Tag already in favorites" });
+    } else {
+      addFavoriteTag(tag);
+      toast({ title: "Tag added to favorites" });
+    }
+  };
+
+  const handleSearchByTag = (tag: string) => {
+    // This searches the news feed - we'll trigger a toast for now
+    toast({ 
+      title: "Searching for articles",
+      description: `Finding articles with "${tag}"...`
+    });
+  };
+
+  // Mobile sidebar content
+  const MobileSidebarContent = () => (
+    <Tabs defaultValue="history" className="flex-1 flex flex-col h-full">
+      <TabsList className="mx-2 mt-2 grid w-auto grid-cols-2">
+        <TabsTrigger value="history" className="text-xs gap-1">
+          <History className="h-3 w-3" />
+          History
+        </TabsTrigger>
+        <TabsTrigger value="favorites" className="text-xs gap-1">
+          <Star className="h-3 w-3" />
+          Favorites
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="history" className="flex-1 overflow-hidden m-0">
+        <ArticleHistorySidebar
+          history={history}
+          selectedId={selectedHistoryId}
+          onSelect={handleSelectHistory}
+          onDelete={handleDeleteHistory}
+          onClear={handleClearHistory}
+          onAddTagToProfile={handleAddTagToProfile}
+        />
+      </TabsContent>
+
+      <TabsContent value="favorites" className="flex-1 overflow-hidden m-0">
+        <FavoritesSidebar
+          favorites={favorites}
+          favoriteTags={favoriteTags}
+          selectedId={selectedHistoryId}
+          onSelect={handleSelectHistory}
+          onRemoveFavorite={removeFavorite}
+          onRemoveTag={removeFavoriteTag}
+          onAddTagToFavorites={handleAddTagToFavorites}
+          onSearchByTag={handleSearchByTag}
+          isTagFavorite={isTagFavorite}
+        />
+      </TabsContent>
+    </Tabs>
+  );
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -312,17 +375,51 @@ const Index = () => {
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* Mobile: Simple layout without sidebar */}
+      {/* Mobile: Simple layout with sheet for history/favorites */}
       <div className="flex flex-col w-full md:hidden">
         <header className="shrink-0 border-b border-border bg-background">
           <div className="flex h-12 items-center justify-between px-4">
-            <span className="font-heading text-sm font-semibold text-foreground">Climate News Translator</span>
-            <Link to="/profile">
-              <Button variant="ghost" size="sm" className="gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                <span className="text-xs">Profile</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <MobileSidebarContent />
+                </SheetContent>
+              </Sheet>
+              <span className="font-heading text-sm font-semibold text-foreground">Climate News Translator</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {selectedHistoryId && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    const item = history.find(h => h.id === selectedHistoryId);
+                    if (item) {
+                      if (isFavorite(item.id)) {
+                        removeFavorite(item.id);
+                        toast({ title: "Removed from favorites" });
+                      } else {
+                        addFavorite(item);
+                        toast({ title: "Added to favorites" });
+                      }
+                    }
+                  }}
+                >
+                  <Star className={cn("h-4 w-4", selectedHistoryId && isFavorite(selectedHistoryId) && "fill-primary text-primary")} />
+                </Button>
+              )}
+              <Link to="/profile">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto">
