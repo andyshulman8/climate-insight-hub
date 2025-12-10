@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { FileText, Trash2, Clock, Plus, Search, X } from "lucide-react";
+import { FileText, Trash2, Clock, Search, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface ArticleHistorySidebarProps {
@@ -14,7 +14,7 @@ interface ArticleHistorySidebarProps {
   onSelect: (item: ArticleHistoryItem) => void;
   onDelete: (id: string) => void;
   onClear: () => void;
-  onAddTagToProfile: (tag: string, type: 'concern' | 'category' | 'geographic') => void;
+  onTagAction: (tag: string, action: 'search' | 'interest') => void;
 }
 
 const extractTags = (analysis: ArticleHistoryItem['analysis']) => {
@@ -46,7 +46,7 @@ export function ArticleHistorySidebar({
   onSelect,
   onDelete,
   onClear,
-  onAddTagToProfile,
+  onTagAction,
 }: ArticleHistorySidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -159,8 +159,8 @@ export function ArticleHistorySidebar({
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 pl-5">
                       {tags.map((tag, idx) => (
-                        <Popover key={idx}>
-                          <PopoverTrigger asChild>
+                        <DropdownMenu key={idx}>
+                          <DropdownMenuTrigger asChild>
                             <Badge
                               variant="outline"
                               className="text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors"
@@ -168,37 +168,30 @@ export function ArticleHistorySidebar({
                             >
                               {tag.label}
                             </Badge>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-40 p-1" align="start">
-                            <div className="flex flex-col gap-0.5">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 justify-start text-xs gap-1.5"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onAddTagToProfile(tag.label, tag.type);
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Add to Profile
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 justify-start text-xs gap-1.5"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // This could trigger a search/filter in the future
-                                  onAddTagToProfile(tag.label, tag.type);
-                                }}
-                              >
-                                <Search className="h-3 w-3" />
-                                Show More Like This
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-48">
+                            <DropdownMenuItem 
+                              className="text-xs gap-2 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onTagAction(tag.label, 'search');
+                              }}
+                            >
+                              <Search className="h-3 w-3" />
+                              Search similar articles
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-xs gap-2 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onTagAction(tag.label, 'interest');
+                              }}
+                            >
+                              <Plus className="h-3 w-3" />
+                              Add to my interests
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ))}
                     </div>
                   )}

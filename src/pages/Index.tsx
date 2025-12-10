@@ -116,35 +116,36 @@ const Index = () => {
     handleNewAnalysis();
   };
 
-  const handleAddTagToProfile = (tag: string, type: 'concern' | 'category' | 'geographic') => {
-    const currentValue = type === 'concern' 
-      ? profile.climateConcerns 
-      : type === 'category' 
-        ? profile.interestCategories 
-        : profile.geographicFocus;
-    
-    const values = currentValue ? currentValue.split(', ').filter(Boolean) : [];
-    if (!values.includes(tag)) {
-      values.push(tag);
-      const newValue = values.join(', ');
-      
-      if (type === 'concern') {
-        updateProfile({ climateConcerns: newValue });
-      } else if (type === 'category') {
-        updateProfile({ interestCategories: newValue });
+  const handleTagAction = (tag: string, action: 'search' | 'interest') => {
+    if (action === 'search') {
+      setTagFilter(tag);
+      setAnalysis(null); // Clear analysis to show news feed with filter
+      setMobileSheetOpen(false);
+      toast({ 
+        title: "Filtering articles",
+        description: `Showing articles with "${tag}"`
+      });
+    } else if (action === 'interest') {
+      // Add to interests (interestCategories) in profile
+      const currentValue = profile.interestCategories || "";
+      const values = currentValue ? currentValue.split(', ').filter(Boolean) : [];
+      if (!values.includes(tag)) {
+        values.push(tag);
+        updateProfile({ interestCategories: values.join(', ') });
+        // Also add to favorite tags
+        if (!isTagFavorite(tag, 'category')) {
+          addFavoriteTag({ label: tag, type: 'category' });
+        }
+        toast({
+          title: "Added to interests",
+          description: `"${tag}" added to your interests and favorite tags.`,
+        });
       } else {
-        updateProfile({ geographicFocus: newValue });
+        toast({
+          title: "Already in interests",
+          description: `"${tag}" is already in your interests.`,
+        });
       }
-      
-      toast({
-        title: "Added to Profile",
-        description: `"${tag}" has been added to your profile preferences.`,
-      });
-    } else {
-      toast({
-        title: "Already in Profile",
-        description: `"${tag}" is already in your profile preferences.`,
-      });
     }
   };
 
@@ -158,13 +159,7 @@ const Index = () => {
   };
 
   const handleSearchByTag = (tag: string) => {
-    setTagFilter(tag);
-    setAnalysis(null); // Clear analysis to show news feed with filter
-    setMobileSheetOpen(false);
-    toast({ 
-      title: "Filtering articles",
-      description: `Showing articles with "${tag}"`
-    });
+    handleTagAction(tag, 'search');
   };
 
   const handleClearTagFilter = () => {
@@ -192,7 +187,7 @@ const Index = () => {
           onSelect={handleSelectHistory}
           onDelete={handleDeleteHistory}
           onClear={handleClearHistory}
-          onAddTagToProfile={handleAddTagToProfile}
+          onTagAction={handleTagAction}
         />
       </TabsContent>
 
@@ -260,7 +255,7 @@ const Index = () => {
               onSelect={handleSelectHistory}
               onDelete={handleDeleteHistory}
               onClear={handleClearHistory}
-              onAddTagToProfile={handleAddTagToProfile}
+              onTagAction={handleTagAction}
             />
           </aside>
         </ResizablePanel>
@@ -370,6 +365,7 @@ const Index = () => {
                     onPasteArticle={handlePasteFromNews} 
                     tagFilter={tagFilter}
                     onClearFilter={handleClearTagFilter}
+                    onTagAction={handleTagAction}
                   />
                 )}
               </div>
@@ -472,6 +468,7 @@ const Index = () => {
                 onPasteArticle={handlePasteFromNews}
                 tagFilter={tagFilter}
                 onClearFilter={handleClearTagFilter}
+                onTagAction={handleTagAction}
               />
             )}
           </div>
