@@ -1,9 +1,9 @@
-import { Star, FileText, Tag, Search, X } from "lucide-react";
+import { Star, FileText, Tag, Search, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import { FavoriteTag } from "@/hooks/useFavorites";
 import { AnalysisResponse } from "@/lib/api";
@@ -130,8 +130,8 @@ export function FavoritesSidebar({
                       {tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 pl-5">
                           {tags.map((tag, idx) => (
-                            <Popover key={idx}>
-                              <PopoverTrigger asChild>
+                            <DropdownMenu key={idx}>
+                              <DropdownMenuTrigger asChild>
                                 <Badge
                                   variant="outline"
                                   className={cn(
@@ -142,36 +142,30 @@ export function FavoritesSidebar({
                                 >
                                   {tag.label}
                                 </Badge>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-44 p-1" align="start">
-                                <div className="flex flex-col gap-0.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 justify-start text-xs gap-1.5"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onAddTagToFavorites(tag);
-                                    }}
-                                  >
-                                    <Star className={cn("h-3 w-3", isTagFavorite(tag.label, tag.type) && "fill-primary text-primary")} />
-                                    {isTagFavorite(tag.label, tag.type) ? "In Favorites" : "Add to Favorites"}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 justify-start text-xs gap-1.5"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onSearchByTag(tag.label);
-                                    }}
-                                  >
-                                    <Search className="h-3 w-3" />
-                                    Search Articles
-                                  </Button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-48">
+                                <DropdownMenuItem 
+                                  className="text-xs gap-2 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSearchByTag(tag.label);
+                                  }}
+                                >
+                                  <Search className="h-3 w-3" />
+                                  Search similar articles
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="text-xs gap-2 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAddTagToFavorites(tag);
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  Add to my interests
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           ))}
                         </div>
                       )}

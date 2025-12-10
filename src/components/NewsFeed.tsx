@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { Copy, ExternalLink, RefreshCw, Newspaper, X } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, Newspaper, X, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 
 interface NewsArticle {
@@ -19,6 +20,7 @@ interface NewsFeedProps {
   onPasteArticle: (text: string) => void;
   tagFilter?: string | null;
   onClearFilter?: () => void;
+  onTagAction?: (tag: string, action: 'search' | 'interest') => void;
 }
 
 // Extract tags from article content
@@ -45,7 +47,7 @@ const extractArticleTags = (title: string, description: string): string[] => {
   return foundTags.slice(0, 3);
 };
 
-export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter }: NewsFeedProps) {
+export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction }: NewsFeedProps) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -247,26 +249,44 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter }: NewsFeedP
         {filteredArticles.map((article, index) => (
           <div
             key={index}
-            className="group p-3 border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors cursor-pointer"
-            onClick={() => onPasteArticle(`${article.title}\n\n${article.description}`)}
+            className="group p-3 border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
           >
               {/* Tags row */}
               {article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
                   {article.tags.map((tag, idx) => (
-                    <Badge 
-                      key={idx} 
-                      variant="outline" 
-                      className="text-2xs py-0 px-1.5 h-4"
-                    >
-                      {tag}
-                    </Badge>
+                    <DropdownMenu key={idx}>
+                      <DropdownMenuTrigger asChild>
+                        <Badge 
+                          variant="outline" 
+                          className="text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors"
+                        >
+                          {tag}
+                        </Badge>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-48">
+                        <DropdownMenuItem 
+                          className="text-xs gap-2 cursor-pointer"
+                          onClick={() => onTagAction?.(tag, 'search')}
+                        >
+                          <Search className="h-3 w-3" />
+                          Search similar articles
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-xs gap-2 cursor-pointer"
+                          onClick={() => onTagAction?.(tag, 'interest')}
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add to my interests
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ))}
                 </div>
               )}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2">
                     {article.title}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -279,15 +299,12 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter }: NewsFeedP
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyHeadline(article.title);
-                    }}
+                    onClick={() => copyHeadline(article.title)}
                     title="Copy headline"
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -296,10 +313,7 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter }: NewsFeedP
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(article.url, "_blank", "noopener,noreferrer");
-                    }}
+                    onClick={() => window.open(article.url, "_blank", "noopener,noreferrer")}
                     title="Open article"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />

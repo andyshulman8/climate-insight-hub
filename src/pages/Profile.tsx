@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Send, User, MapPin, Layers, MessageCircle, Loader2, HelpCircle, Star, FileText, Tag, Search, X, Menu } from "lucide-react";
+import { Send, User, MapPin, Layers, MessageCircle, Loader2, HelpCircle, Star, FileText, Tag, Search, X, Menu, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { profileSetup, type ProfileSetupVariables, ApiError, AnalysisResponse } from "@/lib/api";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -19,7 +20,6 @@ import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import {
   climateConcernOptions,
-  geographicFocusOptions,
   interestCategoryOptions,
   valuesToString,
   stringToValues,
@@ -54,8 +54,10 @@ export default function Profile() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const concernValues = stringToValues(profile.climateConcerns, climateConcernOptions);
-  const geoValues = stringToValues(profile.geographicFocus, geographicFocusOptions);
   const categoryValues = stringToValues(profile.interestCategories, interestCategoryOptions);
+
+  // Get interests from favorite tags (category type)
+  const myInterests = favoriteTags.filter(t => t.type === 'category');
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -186,8 +188,8 @@ export default function Profile() {
                     {tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 pl-5">
                         {tags.map((tag, idx) => (
-                          <Popover key={idx}>
-                            <PopoverTrigger asChild>
+                          <DropdownMenu key={idx}>
+                            <DropdownMenuTrigger asChild>
                               <Badge
                                 variant="outline"
                                 className={cn(
@@ -198,36 +200,30 @@ export default function Profile() {
                               >
                                 {tag.label}
                               </Badge>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-44 p-1" align="start">
-                              <div className="flex flex-col gap-0.5">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 justify-start text-xs gap-1.5"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddTagToFavorites(tag);
-                                  }}
-                                >
-                                  <Star className={cn("h-3 w-3", isTagFavorite(tag.label, tag.type) && "fill-primary text-primary")} />
-                                  {isTagFavorite(tag.label, tag.type) ? "In Favorites" : "Add to Favorites"}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 justify-start text-xs gap-1.5"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSearchByTag(tag.label);
-                                  }}
-                                >
-                                  <Search className="h-3 w-3" />
-                                  Search Articles
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-48">
+                              <DropdownMenuItem 
+                                className="text-xs gap-2 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSearchByTag(tag.label);
+                                }}
+                              >
+                                <Search className="h-3 w-3" />
+                                Search similar articles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-xs gap-2 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddTagToFavorites(tag);
+                                }}
+                              >
+                                <Star className={cn("h-3 w-3", isTagFavorite(tag.label, tag.type) && "fill-primary text-primary")} />
+                                Add to my interests
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         ))}
                       </div>
                     )}
@@ -345,15 +341,15 @@ export default function Profile() {
                   <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                   Geographic Focus
                 </Label>
-                <SearchableSelect
-                  options={geographicFocusOptions}
-                  value={geoValues}
-                  onChange={(values) =>
-                    updateProfile({ geographicFocus: valuesToString(values, geographicFocusOptions) })
-                  }
-                  placeholder="Select regions..."
-                  searchPlaceholder="Search..."
+                <Input
+                  value={profile.geographicFocus}
+                  onChange={(e) => updateProfile({ geographicFocus: e.target.value })}
+                  placeholder="e.g., California coast, Southeast Asia, European Union..."
+                  className="text-sm"
                 />
+                <p className="text-2xs text-muted-foreground">
+                  Enter any location, region, or area you want to focus on
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -371,6 +367,34 @@ export default function Profile() {
                   searchPlaceholder="Search..."
                 />
               </div>
+
+              {/* My Interests Section */}
+              {myInterests.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <Label className="flex items-center gap-2 text-xs font-medium">
+                    <Heart className="h-3.5 w-3.5 text-muted-foreground" />
+                    My Interests
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {myInterests.map((tag, idx) => (
+                      <Badge
+                        key={`${tag.label}-${idx}`}
+                        variant="secondary"
+                        className="text-xs py-0.5 px-2 gap-1 group"
+                      >
+                        {tag.label}
+                        <X 
+                          className="h-3 w-3 cursor-pointer opacity-50 group-hover:opacity-100 transition-opacity hover:text-destructive" 
+                          onClick={() => removeFavoriteTag(tag.label, tag.type)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-2xs text-muted-foreground">
+                    Tags you've added from articles will appear here
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
