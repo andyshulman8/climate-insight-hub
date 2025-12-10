@@ -34,6 +34,7 @@ const Index = () => {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     if (!articleContent.trim()) {
@@ -157,11 +158,17 @@ const Index = () => {
   };
 
   const handleSearchByTag = (tag: string) => {
-    // This searches the news feed - we'll trigger a toast for now
+    setTagFilter(tag);
+    setAnalysis(null); // Clear analysis to show news feed with filter
+    setMobileSheetOpen(false);
     toast({ 
-      title: "Searching for articles",
-      description: `Finding articles with "${tag}"...`
+      title: "Filtering articles",
+      description: `Showing articles with "${tag}"`
     });
+  };
+
+  const handleClearTagFilter = () => {
+    setTagFilter(null);
   };
 
   // Mobile sidebar content
@@ -356,11 +363,14 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                {/* Analysis Results or News Feed */}
                 {analysis ? (
                   <AnalysisResults analysis={analysis} articleContent={articleContent} />
                 ) : (
-                  <NewsFeed onPasteArticle={handlePasteFromNews} />
+                  <NewsFeed 
+                    onPasteArticle={handlePasteFromNews} 
+                    tagFilter={tagFilter}
+                    onClearFilter={handleClearTagFilter}
+                  />
                 )}
               </div>
             </main>
@@ -458,7 +468,11 @@ const Index = () => {
             {analysis ? (
               <AnalysisResults analysis={analysis} articleContent={articleContent} />
             ) : (
-              <NewsFeed onPasteArticle={handlePasteFromNews} />
+              <NewsFeed 
+                onPasteArticle={handlePasteFromNews}
+                tagFilter={tagFilter}
+                onClearFilter={handleClearTagFilter}
+              />
             )}
           </div>
         </main>
