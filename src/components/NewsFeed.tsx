@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Copy, ExternalLink, RefreshCw, Newspaper } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Copy, ExternalLink, RefreshCw, Newspaper, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 
 interface NewsArticle {
@@ -11,25 +12,53 @@ interface NewsArticle {
   url: string;
   source: string;
   publishedAt: string;
+  tags: string[];
 }
 
 interface NewsFeedProps {
   onPasteArticle: (text: string) => void;
+  tagFilter?: string | null;
+  onClearFilter?: () => void;
 }
 
-export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
+// Extract tags from article content
+const extractArticleTags = (title: string, description: string): string[] => {
+  const text = `${title} ${description}`.toLowerCase();
+  const tagKeywords: { [key: string]: string[] } = {
+    'renewable energy': ['renewable', 'solar', 'wind', 'clean energy'],
+    'climate policy': ['policy', 'regulation', 'legislation', 'government', 'eu', 'un'],
+    'emissions': ['emissions', 'carbon', 'co2', 'greenhouse'],
+    'biodiversity': ['biodiversity', 'species', 'wildlife', 'ecosystem'],
+    'extreme weather': ['flood', 'drought', 'hurricane', 'wildfire', 'storm'],
+    'sea level': ['sea level', 'ocean', 'coastal', 'ice', 'glacier', 'antarctic'],
+    'technology': ['technology', 'innovation', 'capture', 'breakthrough'],
+    'migration': ['migration', 'displacement', 'refugee'],
+    'sustainability': ['sustainable', 'sustainability', 'green'],
+  };
+  
+  const foundTags: string[] = [];
+  for (const [tag, keywords] of Object.entries(tagKeywords)) {
+    if (keywords.some(kw => text.includes(kw))) {
+      foundTags.push(tag);
+    }
+  }
+  return foundTags.slice(0, 3);
+};
+
+export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter }: NewsFeedProps) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageNum, setPageNum] = useState(1);
 
-  const fetchNews = async () => {
+  const fetchNews = async (page: number = 1) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Using NewsData.io free API for climate/sustainability news
+      // Using NewsData.io free API for climate/sustainability news with page param
       const response = await fetch(
-        "https://newsdata.io/api/1/news?apikey=pub_63aborO0iX0Qko0i7UHj8dVHNpLJr&q=climate%20OR%20sustainability%20OR%20environment&language=en&category=environment&size=5"
+        `https://newsdata.io/api/1/news?apikey=pub_63aborO0iX0Qko0i7UHj8dVHNpLJr&q=climate%20OR%20sustainability%20OR%20environment&language=en&category=environment&size=5&page=${page}`
       );
       
       if (!response.ok) {
@@ -45,6 +74,7 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
           url: item.link || "#",
           source: item.source_name || item.source_id || "Unknown",
           publishedAt: item.pubDate || new Date().toISOString(),
+          tags: extractArticleTags(item.title || "", item.description || item.content || ""),
         }));
         setArticles(formattedArticles);
       } else {
@@ -60,8 +90,14 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
     }
   };
 
+  const handleRefresh = () => {
+    const nextPage = pageNum + 1;
+    setPageNum(nextPage);
+    fetchNews(nextPage);
+  };
+
   useEffect(() => {
-    fetchNews();
+    fetchNews(1);
   }, []);
 
   const getSampleArticles = (): NewsArticle[] => [
@@ -71,6 +107,7 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
       url: "https://www.irena.org/",
       source: "IRENA",
       publishedAt: new Date().toISOString(),
+      tags: ["renewable energy", "sustainability"],
     },
     {
       title: "New study reveals accelerating ice loss in Antarctica",
@@ -78,6 +115,7 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
       url: "https://www.nature.com/nclimate/",
       source: "Nature",
       publishedAt: new Date(Date.now() - 86400000).toISOString(),
+      tags: ["sea level", "climate policy"],
     },
     {
       title: "Carbon capture technology breakthrough announced",
@@ -85,6 +123,7 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
       url: "https://www.science.org/",
       source: "Science",
       publishedAt: new Date(Date.now() - 172800000).toISOString(),
+      tags: ["technology", "emissions"],
     },
     {
       title: "EU announces ambitious new emissions reduction targets",
@@ -92,6 +131,7 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
       url: "https://ec.europa.eu/clima/",
       source: "EU Commission",
       publishedAt: new Date(Date.now() - 259200000).toISOString(),
+      tags: ["climate policy", "emissions"],
     },
     {
       title: "Climate-driven migration reaches new levels globally",
@@ -99,8 +139,17 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
       url: "https://www.unhcr.org/",
       source: "UNHCR",
       publishedAt: new Date(Date.now() - 345600000).toISOString(),
+      tags: ["migration", "extreme weather"],
     },
   ];
+
+  // Filter articles by tag if filter is set
+  const filteredArticles = useMemo(() => {
+    if (!tagFilter) return articles;
+    return articles.filter(article => 
+      article.tags.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()))
+    );
+  }, [articles, tagFilter]);
 
   const copyHeadline = async (title: string) => {
     try {
@@ -165,65 +214,98 @@ export function NewsFeed({ onPasteArticle }: NewsFeedProps) {
             variant="ghost" 
             size="icon" 
             className="h-7 w-7" 
-            onClick={fetchNews}
+            onClick={handleRefresh}
             disabled={isLoading}
+            title="Load new articles"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
         <CardDescription>
-          Select an article to analyze or paste your own content above
+          {tagFilter ? (
+            <span className="flex items-center gap-2">
+              Filtering by: 
+              <Badge variant="secondary" className="gap-1">
+                {tagFilter}
+                <X 
+                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                  onClick={onClearFilter}
+                />
+              </Badge>
+            </span>
+          ) : (
+            "Select an article to analyze or paste your own content above"
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {articles.map((article, index) => (
+        {filteredArticles.length === 0 && tagFilter ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            No articles match "{tagFilter}". Try a different tag or clear the filter.
+          </div>
+        ) : null}
+        {filteredArticles.map((article, index) => (
           <div
             key={index}
             className="group p-3 border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors cursor-pointer"
             onClick={() => onPasteArticle(`${article.title}\n\n${article.description}`)}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                  {article.title}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                  {article.description}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="citation-badge">{article.source}</span>
-                  <span className="text-2xs text-muted-foreground font-mono">
-                    {formatDate(article.publishedAt)}
-                  </span>
+              {/* Tags row */}
+              {article.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {article.tags.map((tag, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant="outline" 
+                      className="text-2xs py-0 px-1.5 h-4"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    {article.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    {article.description}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="citation-badge">{article.source}</span>
+                    <span className="text-2xs text-muted-foreground font-mono">
+                      {formatDate(article.publishedAt)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyHeadline(article.title);
+                    }}
+                    title="Copy headline"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(article.url, "_blank", "noopener,noreferrer");
+                    }}
+                    title="Open article"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copyHeadline(article.title);
-                  }}
-                  title="Copy headline"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(article.url, "_blank", "noopener,noreferrer");
-                  }}
-                  title="Open article"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
           </div>
         ))}
       </CardContent>
