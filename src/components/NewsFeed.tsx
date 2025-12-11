@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { Copy, ExternalLink, RefreshCw, Newspaper, X, Search, Plus } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, Newspaper, X, Search, Plus, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 
@@ -21,9 +23,21 @@ interface NewsFeedProps {
   tagFilter?: string | null;
   onClearFilter?: () => void;
   onTagAction?: (tag: string, action: 'search' | 'interest') => void;
+  isTagFavorite?: (tag: string) => boolean;
 }
 
-// Extract tags from article content
+const ARTICLE_TAGS = [
+  "renewable energy",
+  "climate policy",
+  "emissions",
+  "biodiversity",
+  "extreme weather",
+  "sea level",
+  "technology",
+  "migration",
+  "sustainability",
+];
+
 const extractArticleTags = (title: string, description: string): string[] => {
   const text = `${title} ${description}`.toLowerCase();
   const tagKeywords: { [key: string]: string[] } = {
@@ -47,11 +61,12 @@ const extractArticleTags = (title: string, description: string): string[] => {
   return foundTags.slice(0, 3);
 };
 
-export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction }: NewsFeedProps) {
+export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction, isTagFavorite }: NewsFeedProps) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pageNum, setPageNum] = useState(1);
+  const [keywordSearch, setKeywordSearch] = useState("");
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string>("all");
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
 
   const getSampleArticles = (): NewsArticle[] => [
     {
@@ -120,42 +135,62 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
     },
   ];
 
-  const allSampleArticles = getSampleArticles();
-
-  const fetchNews = async (page: number = 1) => {
+  const fetchNews = async () => {
     setIsLoading(true);
-    setError(null);
-    
-    // Use sample articles with pagination simulation
-    const articlesPerPage = 5;
-    const startIndex = ((page - 1) % 2) * articlesPerPage; // Rotate through articles
-    const endIndex = startIndex + articlesPerPage;
-    const paginatedArticles = allSampleArticles.slice(startIndex, Math.min(endIndex, allSampleArticles.length));
-    
-    // Simulate a brief loading delay for better UX
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    setArticles(paginatedArticles.length > 0 ? paginatedArticles : allSampleArticles.slice(0, 5));
+    const sortedArticles = getSampleArticles().sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
+    setArticles(sortedArticles);
+    setLastRefreshTime(Date.now());
     setIsLoading(false);
   };
 
   const handleRefresh = () => {
-    const nextPage = pageNum + 1;
-    setPageNum(nextPage);
-    fetchNews(nextPage);
+    const timeSinceLastRefresh = Date.now() - lastRefreshTime;
+    if (timeSinceLastRefresh < 5000) {
+      toast({
+        title: "No new articles",
+        description: "Check back in a moment for updates",
+      });
+      return;
+    }
+    fetchNews();
+    toast({ title: "Articles refreshed" });
   };
 
   useEffect(() => {
-    fetchNews(1);
+    fetchNews();
   }, []);
 
-  // Filter articles by tag if filter is set
+  useEffect(() => {
+    if (tagFilter) {
+      setSelectedTagFilter(tagFilter);
+    }
+  }, [tagFilter]);
+
   const filteredArticles = useMemo(() => {
-    if (!tagFilter) return articles;
-    return articles.filter(article => 
-      article.tags.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()))
+    let result = articles;
+    
+    if (selectedTagFilter && selectedTagFilter !== "all") {
+      result = result.filter(article => 
+        article.tags.some(tag => tag.toLowerCase().includes(selectedTagFilter.toLowerCase()))
+      );
+    }
+    
+    if (keywordSearch.trim()) {
+      const query = keywordSearch.toLowerCase();
+      result = result.filter(article => 
+        article.title.toLowerCase().includes(query) ||
+        article.description.toLowerCase().includes(query) ||
+        article.source.toLowerCase().includes(query)
+      );
+    }
+    
+    return result.sort((a, b) => 
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
-  }, [articles, tagFilter]);
+  }, [articles, selectedTagFilter, keywordSearch]);
 
   const copyHeadline = async (title: string) => {
     try {
@@ -164,7 +199,7 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
         title: "Copied",
         description: "Headline copied to clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Copy failed",
         description: "Could not copy to clipboard",
@@ -184,6 +219,14 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
+
+  const clearFilters = () => {
+    setKeywordSearch("");
+    setSelectedTagFilter("all");
+    onClearFilter?.();
+  };
+
+  const hasActiveFilters = keywordSearch.trim() || (selectedTagFilter && selectedTagFilter !== "all");
 
   if (isLoading) {
     return (
@@ -210,7 +253,7 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
 
   return (
     <Card variant="section" className="animate-fade-in">
-      <CardHeader>
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Newspaper className="h-4 w-4 text-primary" />
@@ -219,43 +262,84 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-7 w-7" 
             onClick={handleRefresh}
             disabled={isLoading}
-            title="Load new articles"
+            title="Refresh articles"
+            data-testid="button-refresh"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
         <CardDescription>
-          {tagFilter ? (
-            <span className="flex items-center gap-2">
-              Filtering by: 
-              <Badge variant="secondary" className="gap-1">
-                {tagFilter}
-                <X 
-                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                  onClick={onClearFilter}
-                />
-              </Badge>
-            </span>
-          ) : (
-            "Select an article to analyze or paste your own content above"
-          )}
+          Select an article to analyze or paste your own content above
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {filteredArticles.length === 0 && tagFilter ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            No articles match "{tagFilter}". Try a different tag or clear the filter.
+
+      <div className="px-6 pb-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search by keyword..."
+              value={keywordSearch}
+              onChange={(e) => setKeywordSearch(e.target.value)}
+              className="h-8 pl-8 pr-8 text-xs"
+              data-testid="input-keyword-search"
+            />
+            {keywordSearch && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-8 w-8"
+                onClick={() => setKeywordSearch("")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
           </div>
-        ) : null}
-        {filteredArticles.map((article, index) => (
-          <div
-            key={index}
-            className="group p-3 border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
-          >
-              {/* Tags row */}
+          <Select value={selectedTagFilter} onValueChange={setSelectedTagFilter}>
+            <SelectTrigger className="w-[140px] h-8 text-xs" data-testid="select-tag-filter">
+              <Filter className="h-3 w-3 mr-1" />
+              <SelectValue placeholder="Filter by tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All tags</SelectItem>
+              {ARTICLE_TAGS.map((tag) => (
+                <SelectItem key={tag} value={tag} className="text-xs">{tag}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {filteredArticles.length} result{filteredArticles.length !== 1 ? 's' : ''}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-6 text-xs px-2"
+            >
+              Clear filters
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="space-y-2 pt-0">
+        {filteredArticles.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            No articles match your search. Try different keywords or clear filters.
+          </div>
+        ) : (
+          filteredArticles.map((article, index) => (
+            <div
+              key={index}
+              className="group p-3 border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
+              data-testid={`card-article-${index}`}
+            >
               {article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
                   {article.tags.map((tag, idx) => (
@@ -263,7 +347,10 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
                       <DropdownMenuTrigger asChild>
                         <Badge 
                           variant="outline" 
-                          className="text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors"
+                          className={`text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors ${
+                            isTagFavorite?.(tag) ? 'bg-primary/10 border-primary/30' : ''
+                          }`}
+                          data-testid={`badge-tag-${tag}`}
                         >
                           {tag}
                         </Badge>
@@ -310,6 +397,7 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
                     className="h-7 w-7"
                     onClick={() => copyHeadline(article.title)}
                     title="Copy headline"
+                    data-testid={`button-copy-${index}`}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
@@ -319,13 +407,15 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
                     className="h-7 w-7"
                     onClick={() => window.open(article.url, "_blank", "noopener,noreferrer")}
                     title="Open article"
+                    data-testid={`button-open-${index}`}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
-          </div>
-        ))}
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );
