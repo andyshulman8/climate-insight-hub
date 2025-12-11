@@ -8,7 +8,6 @@ import { ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import { FavoriteTag } from "@/hooks/useFavorites";
 import { AnalysisResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
-
 interface FavoritesSidebarProps {
   favorites: ArticleHistoryItem[];
   favoriteTags: FavoriteTag[];
@@ -20,39 +19,46 @@ interface FavoritesSidebarProps {
   onSearchByTag: (tag: string) => void;
   isTagFavorite: (label: string, type: string) => boolean;
 }
-
 const extractTags = (analysis: AnalysisResponse) => {
-  const tags: { label: string; type: 'concern' | 'category' | 'geographic' }[] = [];
-  
+  const tags: {
+    label: string;
+    type: 'concern' | 'category' | 'geographic';
+  }[] = [];
   if (analysis.risk_assessment?.risk_level) {
-    tags.push({ label: analysis.risk_assessment.risk_level, type: 'concern' });
-  }
-  
-  if (analysis.sentiment_analysis?.tone) {
-    tags.push({ label: analysis.sentiment_analysis.tone, type: 'category' });
-  }
-  
-  if (analysis.key_terms_explained) {
-    Object.keys(analysis.key_terms_explained).slice(0, 2).forEach(term => {
-      tags.push({ label: term, type: 'category' });
+    tags.push({
+      label: analysis.risk_assessment.risk_level,
+      type: 'concern'
     });
   }
-  
+  if (analysis.sentiment_analysis?.tone) {
+    tags.push({
+      label: analysis.sentiment_analysis.tone,
+      type: 'category'
+    });
+  }
+  if (analysis.key_terms_explained) {
+    Object.keys(analysis.key_terms_explained).slice(0, 2).forEach(term => {
+      tags.push({
+        label: term,
+        type: 'category'
+      });
+    });
+  }
   return tags;
 };
-
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
   if (days === 0) return "Today";
   if (days === 1) return "Yesterday";
   if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric"
+  });
 };
-
 export function FavoritesSidebar({
   favorites,
   favoriteTags,
@@ -62,14 +68,10 @@ export function FavoritesSidebar({
   onRemoveTag,
   onAddTagToFavorites,
   onSearchByTag,
-  isTagFavorite,
+  isTagFavorite
 }: FavoritesSidebarProps) {
-  return (
-    <div className="flex h-full flex-col bg-background">
-      <div className="h-12 flex items-center px-3 border-b border-border">
-        <Star className="h-4 w-4 text-primary mr-2" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Favorites</span>
-      </div>
+  return <div className="flex h-full flex-col bg-background">
+      
 
       <Tabs defaultValue="articles" className="flex-1 flex flex-col overflow-hidden">
         <TabsList className="mx-2 mt-2 grid w-auto grid-cols-2">
@@ -86,93 +88,54 @@ export function FavoritesSidebar({
         <TabsContent value="articles" className="flex-1 overflow-hidden m-0 mt-2">
           <ScrollArea className="h-full">
             <div className="p-2 space-y-0.5">
-              {favorites.length === 0 ? (
-                <div className="p-4 text-center">
+              {favorites.length === 0 ? <div className="p-4 text-center">
                   <Star className="h-5 w-5 mx-auto mb-2 text-muted-foreground/50" />
                   <p className="text-xs text-muted-foreground">No favorites yet</p>
-                </div>
-              ) : (
-                favorites.map((item) => {
-                  const tags = extractTags(item.analysis);
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        "group flex flex-col gap-1.5 p-2 cursor-pointer transition-colors border-l-2 overflow-hidden",
-                        selectedId === item.id
-                          ? "bg-primary/5 border-l-primary text-foreground"
-                          : "hover:bg-muted/50 border-l-transparent text-muted-foreground hover:text-foreground"
-                      )}
-                      onClick={() => onSelect(item)}
-                    >
+                </div> : favorites.map(item => {
+              const tags = extractTags(item.analysis);
+              return <div key={item.id} className={cn("group flex flex-col gap-1.5 p-2 cursor-pointer transition-colors border-l-2 overflow-hidden", selectedId === item.id ? "bg-primary/5 border-l-primary text-foreground" : "hover:bg-muted/50 border-l-transparent text-muted-foreground hover:text-foreground")} onClick={() => onSelect(item)}>
                       <div className="flex items-start gap-2">
                         <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0 overflow-hidden">
                           <p className="text-xs font-medium truncate leading-tight max-w-full">{item.title}</p>
                           <p className="text-2xs text-muted-foreground font-mono mt-0.5">{formatDate(item.timestamp)}</p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveFavorite(item.id);
-                          }}
-                          title="Remove from favorites"
-                        >
+                        <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => {
+                    e.stopPropagation();
+                    onRemoveFavorite(item.id);
+                  }} title="Remove from favorites">
                           <Star className="h-3 w-3 fill-primary text-primary" />
                         </Button>
                       </div>
                       
                       {/* Tags */}
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 pl-5">
-                          {tags.map((tag, idx) => (
-                            <DropdownMenu key={idx}>
+                      {tags.length > 0 && <div className="flex flex-wrap gap-1 pl-5">
+                          {tags.map((tag, idx) => <DropdownMenu key={idx}>
                               <DropdownMenuTrigger asChild>
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    "text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors",
-                                    isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30"
-                                  )}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                                <Badge variant="outline" className={cn("text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors", isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30")} onClick={e => e.stopPropagation()}>
                                   {tag.label}
                                 </Badge>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="start" className="w-48">
-                                <DropdownMenuItem 
-                                  className="text-xs gap-2 cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSearchByTag(tag.label);
-                                  }}
-                                >
+                                <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={e => {
+                        e.stopPropagation();
+                        onSearchByTag(tag.label);
+                      }}>
                                   <Search className="h-3 w-3" />
                                   Search similar articles
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className="text-xs gap-2 cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onAddTagToFavorites(tag);
-                                  }}
-                                >
+                                <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={e => {
+                        e.stopPropagation();
+                        onAddTagToFavorites(tag);
+                      }}>
                                   <Plus className="h-3 w-3" />
                                   Add to my interests
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
-                            </DropdownMenu>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+                            </DropdownMenu>)}
+                        </div>}
+                    </div>;
+            })}
             </div>
           </ScrollArea>
         </TabsContent>
@@ -180,42 +143,23 @@ export function FavoritesSidebar({
         <TabsContent value="tags" className="flex-1 overflow-hidden m-0 mt-2">
           <ScrollArea className="h-full">
             <div className="p-2 space-y-1">
-              {favoriteTags.length === 0 ? (
-                <div className="p-4 text-center">
+              {favoriteTags.length === 0 ? <div className="p-4 text-center">
                   <Tag className="h-5 w-5 mx-auto mb-2 text-muted-foreground/50" />
                   <p className="text-xs text-muted-foreground">No favorite tags yet</p>
                   <p className="text-2xs text-muted-foreground mt-1">Click tags in articles to add them</p>
-                </div>
-              ) : (
-                favoriteTags.map((tag, idx) => (
-                  <div
-                    key={`${tag.label}-${tag.type}-${idx}`}
-                    className="group flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
-                  >
-                    <Badge
-                      variant="outline"
-                      className="text-xs py-0.5 px-2 cursor-pointer hover:bg-primary/10"
-                      onClick={() => onSearchByTag(tag.label)}
-                    >
+                </div> : favoriteTags.map((tag, idx) => <div key={`${tag.label}-${tag.type}-${idx}`} className="group flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                    <Badge variant="outline" className="text-xs py-0.5 px-2 cursor-pointer hover:bg-primary/10" onClick={() => onSearchByTag(tag.label)}>
                       {tag.label}
                     </Badge>
                     <span className="text-2xs text-muted-foreground capitalize">{tag.type}</span>
                     <div className="flex-1" />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => onRemoveTag(tag.label, tag.type)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onRemoveTag(tag.label, tag.type)}>
                       <X className="h-3 w-3" />
                     </Button>
-                  </div>
-                ))
-              )}
+                  </div>)}
             </div>
           </ScrollArea>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
