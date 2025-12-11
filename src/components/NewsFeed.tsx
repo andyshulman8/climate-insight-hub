@@ -53,55 +53,6 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
   const [error, setError] = useState<string | null>(null);
   const [pageNum, setPageNum] = useState(1);
 
-  const fetchNews = async (page: number = 1) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Using NewsData.io free API for climate/sustainability news with page param
-      const response = await fetch(
-        `https://newsdata.io/api/1/news?apikey=pub_63aborO0iX0Qko0i7UHj8dVHNpLJr&q=climate%20OR%20sustainability%20OR%20environment&language=en&category=environment&size=5&page=${page}`
-      );
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch news");
-      }
-      
-      const data = await response.json();
-      
-      if (data.results && data.results.length > 0) {
-        const formattedArticles: NewsArticle[] = data.results.map((item: any) => ({
-          title: item.title || "Untitled",
-          description: item.description || item.content || "No description available",
-          url: item.link || "#",
-          source: item.source_name || item.source_id || "Unknown",
-          publishedAt: item.pubDate || new Date().toISOString(),
-          tags: extractArticleTags(item.title || "", item.description || item.content || ""),
-        }));
-        setArticles(formattedArticles);
-      } else {
-        // Fallback to sample articles if API fails
-        setArticles(getSampleArticles());
-      }
-    } catch (err) {
-      console.error("News fetch error:", err);
-      // Use sample articles as fallback
-      setArticles(getSampleArticles());
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    const nextPage = pageNum + 1;
-    setPageNum(nextPage);
-    fetchNews(nextPage);
-  };
-
-  useEffect(() => {
-    fetchNews(1);
-  }, []);
-
   const getSampleArticles = (): NewsArticle[] => [
     {
       title: "Global renewable energy capacity hits record high in 2024",
@@ -143,7 +94,60 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
       publishedAt: new Date(Date.now() - 345600000).toISOString(),
       tags: ["migration", "extreme weather"],
     },
+    {
+      title: "Major cities pledge net-zero emissions by 2040",
+      description: "Coalition of 100 cities commits to accelerated climate action, representing over 200 million residents worldwide.",
+      url: "https://www.c40.org/",
+      source: "C40 Cities",
+      publishedAt: new Date(Date.now() - 432000000).toISOString(),
+      tags: ["climate policy", "sustainability"],
+    },
+    {
+      title: "Ocean acidification threatens marine ecosystems",
+      description: "New research shows coral reefs and shellfish populations declining faster than predicted due to changing ocean chemistry.",
+      url: "https://www.noaa.gov/",
+      source: "NOAA",
+      publishedAt: new Date(Date.now() - 518400000).toISOString(),
+      tags: ["biodiversity", "sea level"],
+    },
+    {
+      title: "Electric vehicle sales surge past expectations",
+      description: "Global EV adoption accelerates with sales up 40% year-over-year, driven by new models and improved charging infrastructure.",
+      url: "https://www.iea.org/",
+      source: "IEA",
+      publishedAt: new Date(Date.now() - 604800000).toISOString(),
+      tags: ["technology", "emissions"],
+    },
   ];
+
+  const allSampleArticles = getSampleArticles();
+
+  const fetchNews = async (page: number = 1) => {
+    setIsLoading(true);
+    setError(null);
+    
+    // Use sample articles with pagination simulation
+    const articlesPerPage = 5;
+    const startIndex = ((page - 1) % 2) * articlesPerPage; // Rotate through articles
+    const endIndex = startIndex + articlesPerPage;
+    const paginatedArticles = allSampleArticles.slice(startIndex, Math.min(endIndex, allSampleArticles.length));
+    
+    // Simulate a brief loading delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setArticles(paginatedArticles.length > 0 ? paginatedArticles : allSampleArticles.slice(0, 5));
+    setIsLoading(false);
+  };
+
+  const handleRefresh = () => {
+    const nextPage = pageNum + 1;
+    setPageNum(nextPage);
+    fetchNews(nextPage);
+  };
+
+  useEffect(() => {
+    fetchNews(1);
+  }, []);
 
   // Filter articles by tag if filter is set
   const filteredArticles = useMemo(() => {
