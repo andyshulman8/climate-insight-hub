@@ -208,26 +208,31 @@ const Index = () => {
     </Tabs>;
   return <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Layout */}
-      <ResizablePanelGroup className="hidden md:flex w-full">
-        <ResizablePanel defaultSize={20} minSize={12} className="flex flex-col border-r border-border bg-background">
-          {/* Header */}
-          <div className="min-h-[56px] flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
-            <div className="leading-tight overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider block">Climate News</span>
-              <span className="font-heading text-sm font-semibold text-foreground block">Translator</span>
+      <div className="hidden md:flex w-full">
+        <div className="relative flex">
+          <div className={cn("flex flex-col border-r border-border bg-background transition-all duration-200", leftPanelOpen ? "w-64" : "w-0 overflow-hidden") }>
+            {/* Header */}
+            <div className="h-12 flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
+              <span className="text-muted-foreground mx-2">/</span>
+              <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
+            </div>
+
+            {/* Panel content */}
+            <div className="flex-1 overflow-hidden">
+              <LeftPanelContent />
             </div>
           </div>
 
-          {/* Panel content */}
-          <div className={cn("flex-1 overflow-hidden", !leftPanelOpen && "hidden md:block") }>
-            <LeftPanelContent />
-          </div>
-        </ResizablePanel>
+          {/* Toggle button - external tab */}
+          <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-5 flex items-center justify-center bg-muted border border-border border-l-0 rounded-r-md hover:bg-accent transition-colors" title={leftPanelOpen ? "Hide history" : "Show history"} data-testid="button-toggle-left-panel">
+            {leftPanelOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          </button>
 
-        <ResizableHandle withHandle className="!z-20" />
+        </div>
 
-        <ResizablePanel className="flex-1 flex flex-col min-w-0">
-          {/* Main Content */}
+        {/* Main Content */}
+        <div className={cn("flex-1 flex flex-col min-w-0") }>
           <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <header className="shrink-0 border-b border-border bg-background">
