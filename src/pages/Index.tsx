@@ -239,26 +239,7 @@ const Index = () => {
                 {!leftPanelOpen && <span className="font-heading text-sm font-semibold text-foreground">Climate News Translator</span>}
               </div>
               <div className="flex items-center gap-2">
-                {selectedHistoryId && <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => {
-                const item = history.find(h => h.id === selectedHistoryId);
-                if (item) {
-                  if (isFavorite(item.id)) {
-                    removeFavorite(item.id);
-                    toast({
-                      title: "Removed from favorites"
-                    });
-                  } else {
-                    addFavorite(item);
-                    toast({
-                      title: "Added to favorites"
-                    });
-                  }
-                }
-              }} data-testid="button-toggle-favorite">
-                    <Star className={cn("h-3.5 w-3.5", selectedHistoryId && isFavorite(selectedHistoryId) && "fill-primary text-primary")} />
-                    <span className="text-xs">{selectedHistoryId && isFavorite(selectedHistoryId) ? "Unfavorite" : "Favorite"}</span>
-                  </Button>}
-                
+                {/* Favorite button moved next to Analyze button */}
               </div>
             </div>
           </header>
@@ -281,10 +262,37 @@ const Index = () => {
                   <Textarea placeholder="Paste article text here..." value={articleContent} onChange={e => setArticleContent(e.target.value)} rows={3} className="resize-y min-h-[80px] text-sm font-body" data-testid="textarea-article" />
                   <Button onClick={handleAnalyze} disabled={isLoading || !articleContent.trim()} className="w-full sm:w-auto" data-testid="button-analyze">
                     {isLoading ? <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Analyzing...
-                      </> : "Analyze"}
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Analyzing...
+                            </> : "Analyze"}
                   </Button>
+                        <div className="mt-2 sm:mt-0 sm:ml-2 inline-block">
+                          {selectedHistoryId ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const item = history.find(h => h.id === selectedHistoryId);
+                                if (!item) return;
+                                if (isFavorite(item.id)) {
+                                  removeFavorite(item.id);
+                                  toast({ title: "Removed from favorites" });
+                                } else {
+                                  addFavorite(item);
+                                  toast({ title: "Added to favorites" });
+                                }
+                              }}
+                              disabled={!selectedHistoryId}
+                              className="gap-1.5"
+                              data-testid="button-analyze-favorite"
+                            >
+                              <Star className={cn("h-3.5 w-3.5", selectedHistoryId && isFavorite(selectedHistoryId) && "fill-primary text-primary")} />
+                              <span className="text-xs">{selectedHistoryId && isFavorite(selectedHistoryId) ? "Unfavorite" : "Favorite"}</span>
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" disabled className="opacity-60">Favorite</Button>
+                          )}
+                        </div>
                 </CardContent>
               </Card>
 

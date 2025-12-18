@@ -39,6 +39,14 @@ const ARTICLE_TAGS = [
   "sustainability",
 ];
 
+const FEEDS: Record<string, string> = {
+  "Denver Post": "https://www.denverpost.com/feed/",
+  "NYT": "https://www.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+  "NWS Grand Junction Alerts": "https://alerts.weather.gov/cap/co.php?x=1",
+  "KRDO Colorado News": "https://krdo.com/feed/",
+  "Times of Israel": "https://www.timesofisrael.com/feed/",
+};
+
 const extractArticleTags = (title: string, description: string): string[] => {
   const text = `${title} ${description}`.toLowerCase();
   const tagKeywords: { [key: string]: string[] } = {
@@ -146,6 +154,39 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
       const sortParam = sortBy === 'relevance' ? 'relevancy' : 'publishedAt';
       let fetched: NewsArticle[] = [];
 
+      // Try fetching RSS feeds and parse items
+      const fetchRss = async (): Promise<NewsArticle[]> => {
+        const results: NewsArticle[] = [];
+        await Promise.all(Object.entries(FEEDS).map(async ([sourceName, url]) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const text = await res.text();
+            const doc = new DOMParser().parseFromString(text, "application/xml");
+            const items = Array.from(doc.querySelectorAll("item, entry"));
+            items.slice(0, 8).forEach((it) => {
+              const title = (it.querySelector("title")?.textContent || "").trim();
+              const link = (it.querySelector("link")?.textContent || it.querySelector("link")?.getAttribute("href") || "").trim();
+              const description = (it.querySelector("description")?.textContent || it.querySelector("summary")?.textContent || "").trim();
+              const pub = (it.querySelector("pubDate")?.textContent || it.querySelector("updated")?.textContent || new Date().toISOString()).trim();
+              if (title && link) {
+                results.push({
+                  title,
+                  description,
+                  url: link,
+                  source: sourceName,
+                  publishedAt: pub,
+                  tags: extractArticleTags(title, description),
+                });
+              }
+            });
+          } catch (e) {
+            // ignore feed errors for now
+          }
+        }));
+        return results;
+      };
+
       if (apiKey) {
         const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&pageSize=20&sortBy=${sortParam}&language=en&apiKey=${apiKey}`;
         const res = await fetch(url);
@@ -162,8 +203,19 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
         }
       }
 
+      // Also fetch RSS feeds (best-effort). Merge RSS items with API results.
+      const rssItems = await fetchRss();
+      // Merge, preferring API results but appending rss items not already present by url
+      const urls = new Set(fetched.map(f => f.url));
+      rssItems.forEach(r => {
+        if (r.url && !urls.has(r.url)) {
+          fetched.push(r);
+          urls.add(r.url);
+        }
+      });
+
       if (fetched.length === 0) {
-        // fallback to sample articles
+        // fallback to sample articles when nothing was fetched
         fetched = getSampleArticles();
       }
 
