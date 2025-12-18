@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { profileSetup, type ProfileSetupVariables, ApiError } from "@/lib/api";
 import { FavoriteTag } from "@/hooks/useFavorites";
 import { UserProfile } from "@/hooks/useUserProfile";
@@ -96,6 +97,14 @@ export function RightPanel({
     }
   };
   const availableTags = ARTICLE_TAGS.filter(tag => !isTagFavorite(tag, 'category'));
+
+  const generatePersonalAnalysis = () => {
+    const concerns = profile.climateConcerns || 'general climate impacts';
+    const focus = profile.geographicFocus || 'your region';
+    const interests = profile.interestCategories || 'your interests';
+
+    return `Based on your focus on ${focus} and interests in ${interests}, ${concerns} may affect the areas you care about. Short-term impacts could include increased disruption to local services and projects related to ${interests}. Practical actions you can take include supporting local resilience efforts, engaging with community and policy initiatives, and prioritizing low-carbon options in your projects or work. Remember: systemic change is required — individual action helps but isn't the whole solution.`;
+  };
   return <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
         <Card variant="elevated">
@@ -118,6 +127,28 @@ export function RightPanel({
             })} placeholder="e.g., California coast..." className="text-xs h-8" />
             </div>
 
+            <div className="space-y-1.5 pt-2">
+              <Label className="flex items-center gap-2 text-xs font-medium">
+                <Layers className="h-3 w-3 text-muted-foreground" />
+                Sentiment Analysis
+              </Label>
+              <div className="flex items-center gap-3">
+                <RadioGroup value={profile.sentimentPreference || 'basic'} onValueChange={(v) => updateProfile({ sentimentPreference: v })} className="flex items-center">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="basic" />
+                    <span className="text-2xs">Basic</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="lexicon" />
+                    <span className="text-2xs">Lexicon</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="ml" />
+                    <span className="text-2xs">Advanced</span>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
             
           </CardContent>
         </Card>
@@ -176,6 +207,32 @@ export function RightPanel({
               </div>
             </CardContent>
           </Card>}
+
+        <Card variant="section">
+          <CardHeader>
+            <CardTitle className="text-sm">Climate Job Boards</CardTitle>
+            <CardDescription className="text-xs">Opportunities and hiring in climate and sustainability</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc pl-4 text-xs space-y-1">
+              <li><a href="https://climatebase.org" target="_blank" rel="noopener noreferrer" className="underline">Climatebase</a></li>
+              <li><a href="https://greenjobs.com" target="_blank" rel="noopener noreferrer" className="underline">Green Jobs</a></li>
+              <li><a href="https://www.environmentalcareer.com" target="_blank" rel="noopener noreferrer" className="underline">EnvironmentalCareer</a></li>
+              <li><a href="https://www.renewableenergyjobs.com" target="_blank" rel="noopener noreferrer" className="underline">RenewableEnergyJobs</a></li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card variant="section">
+          <CardHeader>
+            <CardTitle className="text-sm">How climate may affect you</CardTitle>
+            <CardDescription className="text-xs">A brief, supportive overview tailored to your profile</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs">{generatePersonalAnalysis()}</p>
+            <p className="text-2xs text-muted-foreground mt-2">Tip: connect with community organizations and policy efforts — broader action drives most change, and you're not alone in this.</p>
+          </CardContent>
+        </Card>
       </div>
     </ScrollArea>;
 }

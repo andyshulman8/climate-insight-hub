@@ -164,7 +164,6 @@ export function ArticleHistorySidebar({
                             <Badge
                               variant="outline"
                               className="text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors"
-                              onClick={(e) => e.stopPropagation()}
                             >
                               {tag.label}
                             </Badge>

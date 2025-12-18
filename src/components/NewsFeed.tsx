@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Copy, ExternalLink, RefreshCw, Newspaper, X, Search, Plus, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,8 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
   const [isLoading, setIsLoading] = useState(true);
   const [keywordSearch, setKeywordSearch] = useState("");
   const [selectedTagFilter, setSelectedTagFilter] = useState<string>("all");
+  const [tagSelection, setTagSelection] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'recent' | 'relevance'>('recent');
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
 
   const getSampleArticles = (): NewsArticle[] => [
@@ -137,13 +140,88 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
 
   const fetchNews = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const sortedArticles = getSampleArticles().sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    );
-    setArticles(sortedArticles);
-    setLastRefreshTime(Date.now());
-    setIsLoading(false);
+    try {
+      const apiKey = (import.meta as any).env?.VITE_NEWS_API_KEY;
+      const query = "(sustainability OR climate) OR ((sustainability OR climate) AND news)";
+      const sortParam = sortBy === 'relevance' ? 'relevancy' : 'publishedAt';
+      let fetched: NewsArticle[] = [];
+
+      if (apiKey) {
+        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&pageSize=20&sortBy=${sortParam}&language=en&apiKey=${apiKey}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          fetched = (data.articles || []).map((a: any) => ({
+            title: a.title || "",
+            description: a.description || "",
+            url: a.url || "",
+            source: a.source?.name || "",
+            publishedAt: a.publishedAt || new Date().toISOString(),
+            tags: extractArticleTags(a.title || "", a.description || ""),
+          } as NewsArticle));
+        }
+      }
+
+      if (fetched.length === 0) {
+        // fallback to sample articles
+        fetched = getSampleArticles();
+      }
+
+      const sortedArticles = fetched.sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      );
+      setArticles(sortedArticles);
+      setLastRefreshTime(Date.now());
+    } catch (err) {
+      setArticles(getSampleArticles());
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const performSearch = async (keyword: string, sort: 'recent' | 'relevance') => {
+    setIsLoading(true);
+    try {
+      const apiKey = (import.meta as any).env?.VITE_NEWS_API_KEY;
+      // Combine user keyword with base climate query
+      const base = "(sustainability OR climate) OR ((sustainability OR climate) AND news)";
+      const query = `${keyword} AND (${base})`;
+      const sortParam = sort === 'relevance' ? 'relevancy' : 'publishedAt';
+      let fetched: NewsArticle[] = [];
+
+      if (apiKey) {
+        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&pageSize=30&sortBy=${sortParam}&language=en&apiKey=${apiKey}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          fetched = (data.articles || []).map((a: any) => ({
+            title: a.title || "",
+            description: a.description || "",
+            url: a.url || "",
+            source: a.source?.name || "",
+            publishedAt: a.publishedAt || new Date().toISOString(),
+            tags: extractArticleTags(a.title || "", a.description || ""),
+          } as NewsArticle));
+        }
+      }
+
+      if (fetched.length === 0) {
+        fetched = getSampleArticles().filter(a => {
+          const q = keyword.toLowerCase();
+          return a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q);
+        });
+      }
+
+      const sortedArticles = fetched.sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      );
+      setArticles(sortedArticles);
+      setLastRefreshTime(Date.now());
+    } catch (err) {
+      setArticles(getSampleArticles());
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRefresh = () => {
@@ -155,7 +233,11 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
       });
       return;
     }
-    fetchNews();
+    if (keywordSearch.trim()) {
+      performSearch(keywordSearch.trim(), sortBy);
+    } else {
+      fetchNews();
+    }
     toast({ title: "Articles refreshed" });
   };
 
@@ -164,17 +246,27 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
   }, []);
 
   useEffect(() => {
+    if (keywordSearch.trim()) {
+      performSearch(keywordSearch.trim(), sortBy);
+    } else {
+      fetchNews();
+    }
+  }, [keywordSearch, sortBy]);
+
+  useEffect(() => {
     if (tagFilter) {
       setSelectedTagFilter(tagFilter);
+      setTagSelection(tagFilter === 'all' ? [] : [tagFilter]);
     }
   }, [tagFilter]);
 
   const filteredArticles = useMemo(() => {
     let result = articles;
     
-    if (selectedTagFilter && selectedTagFilter !== "all") {
+    const activeTag = tagSelection?.[0] || (selectedTagFilter && selectedTagFilter !== 'all' ? selectedTagFilter : null);
+    if (activeTag) {
       result = result.filter(article => 
-        article.tags.some(tag => tag.toLowerCase().includes(selectedTagFilter.toLowerCase()))
+        article.tags.some(tag => tag.toLowerCase().includes(activeTag.toLowerCase()))
       );
     }
     
@@ -297,18 +389,32 @@ export function NewsFeed({ onPasteArticle, tagFilter, onClearFilter, onTagAction
               </Button>
             )}
           </div>
-          <Select value={selectedTagFilter} onValueChange={setSelectedTagFilter}>
-            <SelectTrigger className="w-[140px] h-8 text-xs" data-testid="select-tag-filter">
-              <Filter className="h-3 w-3 mr-1" />
-              <SelectValue placeholder="Filter by tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">All tags</SelectItem>
-              {ARTICLE_TAGS.map((tag) => (
-                <SelectItem key={tag} value={tag} className="text-xs">{tag}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="w-[160px]">
+            <SearchableSelect
+              options={ARTICLE_TAGS.map(t => ({ value: t, label: t }))}
+              value={tagSelection}
+              onChange={(vals) => {
+                setTagSelection(vals);
+                setSelectedTagFilter(vals[0] || 'all');
+              }}
+              placeholder="Filter by tag"
+              searchPlaceholder="Search tags..."
+              emptyMessage="No tags"
+            />
+          </div>
+          {keywordSearch.trim() && (
+            <div className="w-[120px]">
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'recent' | 'relevance')}>
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent" className="text-xs">Recent</SelectItem>
+                  <SelectItem value="relevance" className="text-xs">Relevance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         
         {hasActiveFilters && (

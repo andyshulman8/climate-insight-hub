@@ -6,6 +6,7 @@ export interface UserProfile {
   interestCategories: string;
   conversationHistory: string[];
   sessionId: string;
+  sentimentPreference?: string;
 }
 
 const STORAGE_KEY = "climate-news-profile";
@@ -16,6 +17,7 @@ const defaultProfile: UserProfile = {
   interestCategories: "",
   conversationHistory: [],
   sessionId: crypto.randomUUID(),
+  sentimentPreference: "basic",
 };
 
 export function useUserProfile() {

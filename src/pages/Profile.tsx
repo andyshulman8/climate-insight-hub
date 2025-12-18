@@ -139,7 +139,7 @@ export default function Profile() {
         <Star className="h-4 w-4 text-primary mr-2" />
         <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Favorites</span>
       </div>
-      <TabsList className="mx-2 mt-2 grid w-auto grid-cols-2">
+      <TabsList className="mx-2 mt-2 flex items-center gap-2">
         <TabsTrigger value="articles" className="text-xs gap-1">
           <FileText className="h-3 w-3" />
           Articles
@@ -190,16 +190,15 @@ export default function Profile() {
                         {tags.map((tag, idx) => (
                           <DropdownMenu key={idx}>
                             <DropdownMenuTrigger asChild>
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors",
-                                  isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30"
-                                )}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {tag.label}
-                              </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors",
+                                    isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30"
+                                  )}
+                                >
+                                  {tag.label}
+                                </Badge>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-48">
                               <DropdownMenuItem 

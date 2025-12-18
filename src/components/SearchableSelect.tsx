@@ -37,6 +37,7 @@ export function SearchableSelect({
   className,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   const handleSelect = (selectedValue: string) => {
     if (value.includes(selectedValue)) {
@@ -89,27 +90,40 @@ export function SearchableSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 z-50 bg-popover" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} className="text-sm h-8" />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            className="text-sm h-8"
+            onValueChange={(val: string) => setQuery(val)}
+          />
           <CommandList>
-            <CommandEmpty className="text-xs py-4 text-center">{emptyMessage}</CommandEmpty>
-            <CommandGroup className="max-h-48 overflow-auto">
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => handleSelect(option.value)}
-                  className="text-sm py-1.5"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-3.5 w-3.5",
-                      value.includes(option.value) ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {!query.trim() ? (
+              <CommandEmpty className="text-xs py-4 text-center">Type to search tags...</CommandEmpty>
+            ) : (
+              <>
+                <CommandEmpty className="text-xs py-2 text-center">{options.filter(o => o.label.toLowerCase().includes(query.toLowerCase())).length === 0 ? emptyMessage : ''}</CommandEmpty>
+                <CommandGroup className="max-h-36 overflow-auto">
+                  {options
+                    .filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
+                    .slice(0, 10)
+                    .map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={() => handleSelect(option.value)}
+                        className="text-sm py-1.5"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-3.5 w-3.5",
+                            value.includes(option.value) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {option.label}
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

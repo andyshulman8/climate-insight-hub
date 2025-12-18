@@ -36,6 +36,23 @@ npm i
 npm run dev
 ```
 
+## News API setup (optional)
+
+To enable live news fetching (recommended), create a `.env` file in the project root with a NewsAPI.org key:
+
+```env
+# in project root
+VITE_NEWS_API_KEY=your_newsapi_key_here
+```
+
+If `VITE_NEWS_API_KEY` is present, the app will query NewsAPI.org for recent climate/sustainability articles using the query:
+
+```
+(sustainability OR climate) OR ((sustainability OR climate) AND news)
+```
+
+When performing user keyword searches, the app will append the user's keywords to the query and allow switching sort between `Recent` and `Relevance` (if the provider supports it). If no API key is provided or API calls fail, the app falls back to local sample articles.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

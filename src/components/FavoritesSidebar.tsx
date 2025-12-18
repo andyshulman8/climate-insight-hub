@@ -74,7 +74,7 @@ export function FavoritesSidebar({
       
 
       <Tabs defaultValue="articles" className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-2 mt-2 grid w-auto grid-cols-2">
+        <TabsList className="mx-2 mt-2 flex items-center gap-2">
           <TabsTrigger value="articles" className="text-xs gap-1">
             <FileText className="h-3 w-3" />
             Articles
@@ -111,11 +111,11 @@ export function FavoritesSidebar({
                       {/* Tags */}
                       {tags.length > 0 && <div className="flex flex-wrap gap-1 pl-5">
                           {tags.map((tag, idx) => <DropdownMenu key={idx}>
-                              <DropdownMenuTrigger asChild>
-                                <Badge variant="outline" className={cn("text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors", isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30")} onClick={e => e.stopPropagation()}>
-                                  {tag.label}
-                                </Badge>
-                              </DropdownMenuTrigger>
+                                  <DropdownMenuTrigger asChild>
+                                    <Badge variant="outline" className={cn("text-2xs py-0 px-1.5 h-4 cursor-pointer hover:bg-primary/10 transition-colors", isTagFavorite(tag.label, tag.type) && "bg-primary/10 border-primary/30")}>
+                                      {tag.label}
+                                    </Badge>
+                                  </DropdownMenuTrigger>
                               <DropdownMenuContent align="start" className="w-48">
                                 <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={e => {
                         e.stopPropagation();
