@@ -209,28 +209,26 @@ const Index = () => {
   return <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Layout */}
       <ResizablePanelGroup className="hidden md:flex w-full">
-        <ResizablePanel defaultSize={20} minSize={10} className="relative flex">
-          <div className={cn("flex flex-col border-r border-border bg-background transition-all duration-200 h-full") }>
-            {/* Header */}
-            <div className="min-h-[56px] flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
-              <div className="leading-tight overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>
-                <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider block">Climate News</span>
-                <span className="font-heading text-sm font-semibold text-foreground block">Translator</span>
-              </div>
+        <ResizablePanel defaultSize={20} minSize={12} className="flex flex-col border-r border-border bg-background">
+          {/* Header */}
+          <div className="min-h-[56px] flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
+            <div className="leading-tight overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider block">Climate News</span>
+              <span className="font-heading text-sm font-semibold text-foreground block">Translator</span>
             </div>
+          </div>
 
-            {/* Panel content */}
-            <div className="flex-1 overflow-hidden">
-              <LeftPanelContent />
-            </div>
+          {/* Panel content */}
+          <div className={cn("flex-1 overflow-hidden", !leftPanelOpen && "hidden md:block") }>
+            <LeftPanelContent />
           </div>
         </ResizablePanel>
 
-        <ResizableHandle className="!z-20" withHandle />
+        <ResizableHandle withHandle className="!z-20" />
 
         <ResizablePanel className="flex-1 flex flex-col min-w-0">
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <header className="shrink-0 border-b border-border bg-background">
             <div className="flex h-12 items-center justify-between px-4 gap-2">
@@ -307,8 +305,11 @@ const Index = () => {
           </footer>
         </div>
 
-        {/* Right Panel - Preferences */}
-        <div className={cn("flex flex-col border-l border-border bg-background transition-all duration-200", rightPanelOpen ? "w-80" : "w-0 overflow-hidden")}>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="!z-20" />
+
+        <ResizablePanel defaultSize={18} minSize={12} className={cn("flex flex-col border-l border-border bg-background transition-all duration-200", !rightPanelOpen && "hidden md:block")}>
           <div className="h-12 flex items-center px-3 border-b border-border shrink-0">
             <User className="h-4 w-4 text-primary mr-2" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Preferences</span>
