@@ -132,20 +132,29 @@ export function RightPanel({
                 <Layers className="h-3 w-3 text-muted-foreground" />
                 Sentiment Analysis
               </Label>
-              <div className="flex items-center gap-3">
-                <RadioGroup value={profile.sentimentPreference || 'basic'} onValueChange={(v) => updateProfile({ sentimentPreference: v })} className="flex items-center">
-                  <div className="flex items-center gap-2">
+              <div className="grid grid-cols-1 gap-2">
+                <RadioGroup value={profile.sentimentPreference || 'basic'} onValueChange={(v) => updateProfile({ sentimentPreference: v })} className="flex flex-col">
+                  <label className="flex items-start gap-2">
                     <RadioGroupItem value="basic" />
-                    <span className="text-2xs">Basic</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                    <div className="text-xs">
+                      <div className="font-medium">Basic</div>
+                      <div className="text-2xs text-muted-foreground">Simple polarity (positive/neutral/negative) for quick scanning.</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-2">
                     <RadioGroupItem value="lexicon" />
-                    <span className="text-2xs">Lexicon</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                    <div className="text-xs">
+                      <div className="font-medium">Lexicon</div>
+                      <div className="text-2xs text-muted-foreground">Rule-based tone analysis tuned for climate vocabulary.</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-2">
                     <RadioGroupItem value="ml" />
-                    <span className="text-2xs">Advanced</span>
-                  </div>
+                    <div className="text-xs">
+                      <div className="font-medium">Advanced</div>
+                      <div className="text-2xs text-muted-foreground">Model-based sentiment with emotional impact and nuance.</div>
+                    </div>
+                  </label>
                 </RadioGroup>
               </div>
             </div>
@@ -210,6 +219,17 @@ export function RightPanel({
 
         <Card variant="section">
           <CardHeader>
+            <CardTitle className="text-sm">How climate may affect you</CardTitle>
+            <CardDescription className="text-xs">A brief, supportive overview tailored to your profile</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs">{generatePersonalAnalysis()}</p>
+            <p className="text-2xs text-muted-foreground mt-2">Tip: connect with community organizations and policy efforts — broader action drives most change, and you're not alone in this.</p>
+          </CardContent>
+        </Card>
+
+        <Card variant="section">
+          <CardHeader>
             <CardTitle className="text-sm">Climate Job Boards</CardTitle>
             <CardDescription className="text-xs">Opportunities and hiring in climate and sustainability</CardDescription>
           </CardHeader>
@@ -223,16 +243,7 @@ export function RightPanel({
           </CardContent>
         </Card>
 
-        <Card variant="section">
-          <CardHeader>
-            <CardTitle className="text-sm">How climate may affect you</CardTitle>
-            <CardDescription className="text-xs">A brief, supportive overview tailored to your profile</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs">{generatePersonalAnalysis()}</p>
-            <p className="text-2xs text-muted-foreground mt-2">Tip: connect with community organizations and policy efforts — broader action drives most change, and you're not alone in this.</p>
-          </CardContent>
-        </Card>
+        
       </div>
     </ScrollArea>;
 }

@@ -10,6 +10,7 @@ import { FavoritesSidebar } from "@/components/FavoritesSidebar";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { NewsFeed } from "@/components/NewsFeed";
 import { RightPanel } from "@/components/RightPanel";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useArticleHistory, ArticleHistoryItem } from "@/hooks/useArticleHistory";
 import { useFavorites, FavoriteTag } from "@/hooks/useFavorites";
@@ -207,15 +208,15 @@ const Index = () => {
     </Tabs>;
   return <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full">
-        {/* Left Panel - History/Favorites */}
-        <div className="relative flex">
-          <div className={cn("flex flex-col border-r border-border bg-background transition-all duration-200", leftPanelOpen ? "w-64" : "w-0 overflow-hidden")}>
+      <ResizablePanelGroup className="hidden md:flex w-full">
+        <ResizablePanel defaultSize={20} minSize={10} className="relative flex">
+          <div className={cn("flex flex-col border-r border-border bg-background transition-all duration-200 h-full") }>
             {/* Header */}
-            <div className="h-12 flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Climate News</span>
-              <span className="text-muted-foreground mx-2">/</span>
-              <span className="font-heading text-sm font-semibold text-foreground">Translator</span>
+            <div className="min-h-[56px] flex items-center px-3 border-b border-border bg-background cursor-pointer hover:bg-muted/30 transition-colors shrink-0" onClick={handleNewAnalysis} title="New Analysis">
+              <div className="leading-tight overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>
+                <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider block">Climate News</span>
+                <span className="font-heading text-sm font-semibold text-foreground block">Translator</span>
+              </div>
             </div>
 
             {/* Panel content */}
@@ -223,13 +224,11 @@ const Index = () => {
               <LeftPanelContent />
             </div>
           </div>
+        </ResizablePanel>
 
-          {/* Toggle button - external tab */}
-          <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-5 flex items-center justify-center bg-muted border border-border border-l-0 rounded-r-md hover:bg-accent transition-colors" title={leftPanelOpen ? "Hide history" : "Show history"} data-testid="button-toggle-left-panel">
-            {leftPanelOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-          </button>
-        </div>
+        <ResizableHandle className="!z-20" withHandle />
 
+        <ResizablePanel className="flex-1 flex flex-col min-w-0">
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
@@ -317,8 +316,8 @@ const Index = () => {
           <div className="flex-1 overflow-hidden">
             <RightPanel profile={profile} updateProfile={updateProfile} addToHistory={addToHistory} favoriteTags={favoriteTags} addFavoriteTag={addFavoriteTag} removeFavoriteTag={removeFavoriteTag} isTagFavorite={isTagFavorite} onSearchByTag={handleSearchByTag} onRemoveInterestTag={handleRemoveInterestTag} />
           </div>
-        </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* Mobile Layout */}
       <div className="flex flex-col w-full md:hidden">
